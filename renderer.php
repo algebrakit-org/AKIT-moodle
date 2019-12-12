@@ -34,32 +34,29 @@ class qtype_algebrakit_renderer extends qtype_renderer {
 
     protected $session;
     protected $solutionMode = false;
+    protected $reviewMode = false;
     protected $continued = false;
+
+    protected $questionText;
 
     public function formulation_and_controls(question_attempt $qa,
             question_display_options $options) {
 
         $question = $qa->get_question();
 
+        $this->questionsummary = $qa->get_question()->questiontext;
+
         $qtData = $qa->get_last_qt_data();
         if (in_array('solutionMode', $qtData)) {
             $this->solutionMode = true;
         } 
 
+        $this->reviewMode = $this->is_review($qa);
+
         $this->session = $question->session;
         $this->continued = $question->continued;
 
         $result = $this->continueSession();
-
-        $currentanswer = $qa->get_last_qt_var('answer');
-        $ansInputname = $qa->get_qt_field_name('answer');
-
-        $anwerAttributes = array(
-            'type' => 'hidden',
-            'name' => $ansInputname,
-            'value' => $currentanswer,
-            'id' => $ansInputname,
-        );
 
         $sessionInputname = $qa->get_qt_field_name('_session');
         $sessionJSON = json_encode($this->session);
@@ -76,14 +73,44 @@ class qtype_algebrakit_renderer extends qtype_renderer {
         return $result;
     }
 
+    /**
+     * Returns an error message if session has an error, otherwise null;
+     */
+    private static function getSessionError($session) {
+        if (!isset($session)) {
+            return "No session";
+        }
+        if (!is_array($session)) {
+            if (isset($session->error)) {
+                return $session->error;
+            }
+            if (isset($session->msg)) {
+                return $session->msg;
+            }
+        }
+        if (is_array($session) && isset($session[0])) {
+            if (isset($session[0]->error)) {
+                return $session[0]->error;
+            }
+            if (isset($session[0]->msg)) {
+                return $session[0]->msg;
+            }
+        }
+        else if (is_array($session) && !isset($session[0])) {
+            return "No session";
+        }
+        return null;
+    }
+
     public function continueSession() {
         global $CFG;
         $html = "";
-        if (!isset($this->session) || (isset($this->session->success) && $this->session->success === false)) {
-            $html .= "Failed to generate session for exercise: <br/>";
-            if (isset($this->session) && isset($this->session->error)) {
-                $html .= $this->session->error;
-            }
+        if (!empty($this->questionsummary)) {
+            $html .= $this->questionsummary;
+        }
+        $err = qtype_algebrakit_renderer::getSessionError($this->session);
+        if ($err != null) {
+            $html .= "Failed to generate session for exercise: <br/> $err";
         }
         else {
             for ($ii = 0; $ii < count($this->session); $ii++) {
@@ -96,14 +123,17 @@ class qtype_algebrakit_renderer extends qtype_renderer {
                         // (initialization data is inlined)
                         $html .= '<br><br>';
                         $sessionId = $ex->sessions[$nn]->sessionId;
-                        $anwerAttributes = array(
+                        $attributes = array(
                             'session-id' => $sessionId,
                         );
                         if ($this->solutionMode || $this->continued) {
                             if ($this->solutionMode) {
-                                $anwerAttributes['solution-mode'] = true;
+                                $attributes['solution-mode'] = true;
                             }
-                            $html .= html_writer::empty_tag('akit-exercise', $anwerAttributes);
+                            if ($this->reviewMode) {
+                                $attributes['review-mode'] = true;
+                            }
+                            $html .= html_writer::empty_tag('akit-exercise', $attributes);
                         }
                         else {
                             $html .= $ex->sessions[$nn]->html;
@@ -124,5 +154,11 @@ class qtype_algebrakit_renderer extends qtype_renderer {
             ";
         }
         return $html;
+    }
+
+    public function is_review(question_attempt $qa) {
+        return $qa->get_state() == question_state::$finished
+            || $qa->get_state() == question_state::$complete
+            || $qa->get_state() == question_state::$gaveup;
     }
 }

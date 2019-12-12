@@ -29,6 +29,12 @@ defined('MOODLE_INTERNAL') || die();
 require_once($CFG->dirroot . '/question/type/questionbase.php');
 require_once($CFG->dirroot . '/question/type/algebrakit/lib.php');
 
+class SessionResponse {
+    public $success;
+    public $msg;
+    public $sessions;
+}
+
 /**
  * Represents a numerical question.
  *
@@ -46,7 +52,7 @@ class qtype_algebrakit_question extends question_graded_automatically {
     public $session;
     public $continued = false;
 
-    protected $apiKey;
+    protected $apiKey = null;
 
     /** @var qtype_algebrakit_answer_processor */
     public $ap;
@@ -56,11 +62,12 @@ class qtype_algebrakit_question extends question_graded_automatically {
     }
 
     public function get_expected_data() {
-        return array();
+        return array('_session' => PARAM_RAW_TRIMMED);
     }
 
     public function start_attempt(question_attempt_step $step, $variant) {
         $this->session = json_decode($step->get_qt_var('_session'));
+        $this->defaultmark = (int) $step->get_qt_var('_marksTotal');
 
         if ($this->session !== null) {
             //Create exercise tag and continue
@@ -69,21 +76,46 @@ class qtype_algebrakit_question extends question_graded_automatically {
         else {
             $this->createSession($this->exercise_id, $this->major_version);
             $step->set_qt_var('_session', json_encode($this->session));
+            $this->defaultmark = 0;
+            if (isset($this->session) && is_array($this->session)) {
+                $this->defaultmark = 0;
+                foreach ($this->session as $sess) {
+                    if ($sess->success == false) {
+                        continue;
+                    }
+                    foreach ($sess->sessions as $s) {
+                        $this->defaultmark += $s->marksTotal;
+                    }
+                }
+            }
+            $step->set_qt_var('_marksTotal', json_encode($this->defaultmark));
         }
     }
 
     public function apply_attempt_state(question_attempt_step $step) {
         $this->session = json_decode($step->get_qt_var('_session'));
+        $this->defaultmark = (int) $step->get_qt_var('_marksTotal');
         if ($this->session != null) {
             $this->continued = true;
         }
+        parent::apply_attempt_state($step);
     }
 
     public function createSession($exerciseId, $majorVersion) {
+        if (empty($this->apiKey)) {
+            $sess = new SessionResponse();
+            $sess->success = false;
+            $sess->msg = 'No API Key is set. Go to the settings for the AlgebraKiT plugin to enter an API Key.';
+            $sess->sessions = [];
+            $this->session = [
+                $sess
+            ];
+            return;
+        }
         $exList = [
             0 => [
                 'exerciseId' => $exerciseId,
-                'version' => intval($majorVersion) ? intval($majorVersion) : $majorVersion
+                'version' => intval($majorVersion) ? intval($majorVersion) : 'latest'
             ]
         ];
         $data = array(
@@ -94,11 +126,19 @@ class qtype_algebrakit_question extends question_graded_automatically {
     }
 
     public function summarise_response(array $response) {
-        return array();
+        if (isset($response['_session'])) {
+            return "View the indivudual questions to see the responses";
+        } else {
+            return null;
+        }
     }
 
     public function un_summarise_response(string $summary) {
-        return array();
+        if (!empty($summary)) {
+            return ['_session' => $summary];
+        } else {
+            return [];
+        }
     }
 
     public function is_gradable_response(array $response) {
@@ -122,27 +162,21 @@ class qtype_algebrakit_question extends question_graded_automatically {
     }
 
     public function get_right_answer_summary() {
-        return "";
-    }
-
-    /**
-     * Get an answer that contains the feedback and fraction that should be
-     * awarded for this response.
-     * @param number $value the numerical value of a response.
-     * @param number $multiplier for the unit the student gave, if any. When no
-     *      unit was given, or an unrecognised unit was given, $multiplier will be null.
-     * @return question_answer the matching answer.
-     */
-    public function get_matching_answer($value, $multiplier) {
-        return null;
+        return "Open the exercise to view the correct answer";
     }
 
     public function grade_response(array $response) {
-       return array();
-    }
-
-    public function classify_response(array $response) {
-        return array();
+        $sessionObj = json_decode($response["_session"]);
+        $sessionId = $sessionObj[0]->sessions[0]->sessionId;
+        $data = array(
+            'sessionId' => $sessionId
+        );
+        $scoreObj = akitPost('/session/score', $data, $this->apiKey);
+        if ($scoreObj->success == false) {
+            throw new coding_exception("Invalid response when getting score for question", "Score Response: ".json_encode($scoreObj).";\nSession info: ".$response['_session']);
+        }
+        $fraction = $scoreObj->scoring->marksEarned / $scoreObj->scoring->marksTotal;
+        return array($fraction, question_state::graded_state_for_fraction($fraction));
     }
 
     public function check_file_access($qa, $options, $component, $filearea,

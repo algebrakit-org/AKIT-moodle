@@ -53,6 +53,10 @@ class qtype_algebrakit_edit_form extends question_edit_form {
      */
     protected function add_exercise_options($mform) {
 
+        $i = array_search("questiontext", $mform->_required);
+        array_splice($mform->_required, $i, 1);
+        $mform->_rules['questiontext'] = array();
+
         $mform->addElement('header', 'akit_exercise',
                 get_string('akit_exercise', 'qtype_algebrakit'));
 
