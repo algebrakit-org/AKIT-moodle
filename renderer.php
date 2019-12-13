@@ -157,8 +157,6 @@ class qtype_algebrakit_renderer extends qtype_renderer {
     }
 
     public function is_review(question_attempt $qa) {
-        return $qa->get_state() == question_state::$finished
-            || $qa->get_state() == question_state::$complete
-            || $qa->get_state() == question_state::$gaveup;
+        return !$qa->get_state()->is_active();
     }
 }

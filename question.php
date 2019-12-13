@@ -172,10 +172,13 @@ class qtype_algebrakit_question extends question_graded_automatically {
             'sessionId' => $sessionId
         );
         $scoreObj = akitPost('/session/score', $data, $this->apiKey);
-        if ($scoreObj->success == false) {
-            throw new coding_exception("Invalid response when getting score for question", "Score Response: ".json_encode($scoreObj).";\nSession info: ".$response['_session']);
+        if (isset($scoreObj->success) && $scoreObj->success === false) {
+            //throw new coding_exception("Invalid response when getting score for question", "Score Response: ".json_encode($scoreObj).";\nSession info: ".$response['_session']);
+            $fraction = 0;
         }
-        $fraction = $scoreObj->scoring->marksEarned / $scoreObj->scoring->marksTotal;
+        else {
+            $fraction = $scoreObj->scoring->marksEarned / $scoreObj->scoring->marksTotal;
+        }
         return array($fraction, question_state::graded_state_for_fraction($fraction));
     }
 
