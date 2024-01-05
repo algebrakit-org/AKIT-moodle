@@ -31,7 +31,7 @@ function qtype_algebrakit_pluginfile($course, $cm, $context, $filearea, $args, $
 }
 
 function akitPost($url, $data, $apiKey) {
-    $url  = "https://algebrakit.eu".$url;
+    $url  = "https://api.algebrakit.com".$url;
     $dataString = json_encode($data);
 
     $curl = curl_init($url);

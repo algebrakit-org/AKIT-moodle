@@ -26,7 +26,7 @@
 defined('MOODLE_INTERNAL') || die();
 
 $plugin->component = 'qtype_algebrakit';
-$plugin->version   = 2019052001;
+$plugin->version   = 2024010003;
 
 $plugin->requires  = 2019051101;
 
