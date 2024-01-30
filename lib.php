@@ -24,15 +24,18 @@ defined('MOODLE_INTERNAL') || die();
  * @param array $options additional options affecting the file serving
  * @return bool
  */
-function qtype_algebrakit_pluginfile($course, $cm, $context, $filearea, $args, $forcedownload, array $options=array()) {
+function qtype_algebrakit_pluginfile($course, $cm, $context, $filearea, $args, $forcedownload, array $options = array())
+{
     global $CFG;
     require_once($CFG->libdir . '/questionlib.php');
     question_pluginfile($course, $context, 'qtype_algebrakit', $filearea, $args, $forcedownload, $options);
 }
 
-function akitPost($url, $data, $apiKey) {
-    $url  = "https://api.algebrakit.com".$url;
+function akitPost($url, $data, $apiKey)
+{
+    $url = "https://api.staging.algebrakit.com" . $url;
     $dataString = json_encode($data);
+    error_log("" . $url . "" . $dataString);
 
     $curl = curl_init($url);
     curl_setopt($curl, CURLOPT_HEADER, false);
@@ -41,5 +44,13 @@ function akitPost($url, $data, $apiKey) {
     curl_setopt($curl, CURLOPT_POST, true);
     curl_setopt($curl, CURLOPT_POSTFIELDS, $dataString);
     $json_response = curl_exec($curl);
+
+    error_log("" . $json_response);
     return json_decode($json_response);
 }
+
+
+// TODO algebrakit logo
+// AlgebraKiT 
+// Preview
+// view derivation

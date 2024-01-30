@@ -145,8 +145,8 @@ class qtype_algebrakit_renderer extends qtype_renderer {
                 }
             } 
             $script = file_get_contents($CFG->dirroot . '/question/type/algebrakit/widgetLoader.js');
-            // $html .= "<link rel='stylesheet' href='https://cdn.jsdelivr.net/npm/katex@0.10.1/dist/katex.min.css'></script>";
-            // $html .= "<script src='https://cdn.jsdelivr.net/npm/katex@0.10.1/dist/katex.min.js'></script>";
+            $html .= "<link rel='stylesheet' href='https://cdn.jsdelivr.net/npm/katex@0.10.1/dist/katex.min.css'></script>";
+            $html .= "<script src='https://cdn.jsdelivr.net/npm/katex@0.10.1/dist/katex.min.js'></script>";
             $html .= "
             <script>
                 $script
