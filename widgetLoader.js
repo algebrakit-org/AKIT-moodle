@@ -1,8 +1,8 @@
 function loadJs() {
     var script = document.createElement('script');
-    script.src = "https://widgets.algebrakit.com/akit-widgets.min.js";
+    // script.src = "https://widgets.staging.algebrakit.com/akit-widgets.min.js";
     
-    // script.src = "http://localhost:4000/akit-widgets.js";
+    script.src = "AK_WIDGETS_URL/akit-widgets.js";
     document.body.appendChild(script);
 }
 

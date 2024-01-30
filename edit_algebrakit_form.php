@@ -23,12 +23,11 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-
 defined('MOODLE_INTERNAL') || die();
 
 require_once($CFG->dirroot . '/question/type/edit_question_form.php');
 require_once($CFG->dirroot . '/question/type/algebrakit/questiontype.php');
-
+require_once($CFG->dirroot . '/question/type/algebrakit/constants.php');
 
 /**
  * numerical editing form definition.
@@ -80,14 +79,13 @@ class qtype_algebrakit_edit_form extends question_edit_form
             get_string('majorversion', 'qtype_algebrakit')
         );
 
-
         $mform->setType('exercise_id', PARAM_NOTAGS);
         $mform->setType('major_version', PARAM_INT);
     }
+
     protected function add_exercise_editor($mform)
     {
-        global $CFG;
-
+        global $CFG, $AK_MOODLE_WIDGET_URL, $AK_CDN_URL, $AK_PROXY_URL;
 
         $mform->addElement(
             'text',
@@ -97,12 +95,6 @@ class qtype_algebrakit_edit_form extends question_edit_form
         $mform->setType('exercise_in_json', PARAM_NOTAGS);
 
         $html = "";
-
-        $html .= "<script src=\"https://cdn.jsdelivr.net/npm/quill@2.0.0-beta.0/dist/quill.js\"></script>";
-
-        //<script type=\"module\" src='http://localhost:3333/build/moodle-widget.esm.js'></script>
-
-
         $html .= "
                            
         <!--- Global object AlgebraKIT will be the front end API of AlgebraKiT and is used for configuration -->
@@ -111,24 +103,20 @@ class qtype_algebrakit_edit_form extends question_edit_form
             AlgebraKIT = {
                 config: {
                     secureProxy: {
-                        url: 'https://testbench.algebrakit.com/algebrakit-secure'
-                    },
-                    // proxy: { url: '/algebrakit' },
-                    // theme: '...'   //themes configure behaviour and design of frontend widgets
+                        url: '{$AK_PROXY_URL}'
+                    }
                 }
             }
         </script>
         
-        <script src=\"https://widgets.algebrakit.com/akit-widgets.min.js\"></script>
+        <script src=\"{$AK_CDN_URL}/akit-widgets.js\"></script>
                            
-        <script type=\"module\" src='https://moodle-widget.algebrakit.com/moodle-widget/moodle-widget.esm.js'></script>
+        <script type=\"module\" src='{$AK_MOODLE_WIDGET_URL}/moodle-widget.esm.js'></script>
+        <script src=\"https://cdn.jsdelivr.net/npm/quill@2.0.0-beta.0/dist/quill.min.js\"></script>
         <moodle-algebrakit-exercise-loader></moodle-algebrakit-exercise-loader>
         ";
         //add html to the form
         $mform->addElement('html', $html);
-
-
-
     }
 
     public function validation($data, $files)

@@ -9,6 +9,7 @@
 
 defined('MOODLE_INTERNAL') || die();
 
+require_once($CFG->dirroot . '/question/type/algebrakit/constants.php');
 
 /**
  * Checks file access for numerical questions.
@@ -33,7 +34,9 @@ function qtype_algebrakit_pluginfile($course, $cm, $context, $filearea, $args, $
 
 function akitPost($url, $data, $apiKey)
 {
-    $url = "https://api.staging.algebrakit.com" . $url;
+    global $AK_API_URL;
+    
+    $url = $AK_API_URL . $url;
     $dataString = json_encode($data);
     error_log("" . $url . "" . $dataString);
 

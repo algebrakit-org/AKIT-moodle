@@ -74,8 +74,12 @@ class qtype_algebrakit_question extends question_graded_automatically
 
     public function start_attempt(question_attempt_step $step, $variant)
     {
-        $this->session = json_decode($step->get_qt_var('_session'));
         $this->defaultmark = (int) $step->get_qt_var('_marksTotal');
+
+        $sessionVar = $step->get_qt_var('_session');
+        if($sessionVar!=null) {
+            $this->session = json_decode($step->get_qt_var('_session'));
+        }
 
         if ($this->session !== null) {
             //Create exercise tag and continue
@@ -156,7 +160,7 @@ class qtype_algebrakit_question extends question_graded_automatically
     public function summarise_response(array $response)
     {
         if (isset($response['_session'])) {
-            return "View the indivudual questions to see the responses";
+            return "View the individual questions to see the responses";
         } else {
             return null;
         }
