@@ -101,7 +101,7 @@ class qtype_algebrakit_edit_form extends question_edit_form
         $html .= "<script src=\"https://cdn.jsdelivr.net/npm/quill@2.0.0-beta.0/dist/quill.js\"></script>";
 
         //<script type=\"module\" src='http://localhost:3333/build/moodle-widget.esm.js'></script>
-
+//<script type=\"module\" src='https://moodle-widget.algebrakit.com/moodle-widget/moodle-widget.esm.js'></script>
 
         $html .= "
                            
@@ -120,8 +120,8 @@ class qtype_algebrakit_edit_form extends question_edit_form
         </script>
         
         <script src=\"https://widgets.algebrakit.com/akit-widgets.min.js\"></script>
-                           
-        <script type=\"module\" src='https://moodle-widget.algebrakit.com/moodle-widget/moodle-widget.esm.js'></script>
+        <script type=\"module\" src='http://localhost:3333/build/moodle-widget.esm.js'></script>                           
+        
         <moodle-algebrakit-exercise-loader></moodle-algebrakit-exercise-loader>
         ";
         //add html to the form
