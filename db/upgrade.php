@@ -31,19 +31,44 @@ function xmldb_qtype_algebrakit_upgrade($oldversion) {
     $dbman = $DB->get_manager(); // loads database manager
 
     // Add a new field to an existing table, only if it doesn't exist
-    if ($oldversion < 20240121605) {
-        // Define field exercise_in_json to be added to question_algebrakit
+    if ($oldversion < 20240131011) {
         $table = new xmldb_table('question_algebrakit');
-        $field = new xmldb_field('exercise_in_json', XMLDB_TYPE_TEXT, 'big', null, false, null, null, 'major_version');
 
-        // Conditionally launch add field exercise_in_json
+        // drop major_version
+        $field = new xmldb_field('major_version');
+        if ($dbman->field_exists($table, $field)) {
+            $dbman->drop_field($table, $field);
+        }
+
+        //Add field exercise_in_json to be added to question_algebrakit
+        $field = new xmldb_field('exercise_in_json', XMLDB_TYPE_TEXT, 'big', null, false, null, null, null, 'exercise_id');
+
         if (!$dbman->field_exists($table, $field)) {
             $dbman->add_field($table, $field);
         }
 
-        // Algebrakit savepoint reached
-        upgrade_plugin_savepoint(true, 20240121605, 'qtype', 'algebrakit');
-    }
+        // remove the index on exercise_id before changing it
+        $index = new xmldb_index('exercise_id_index', XMLDB_INDEX_NOTUNIQUE, ['exercise_id']);
+        if ($dbman->index_exists($table, $index)) {
+            $dbman->drop_index($table, $index);
+        }
+        $index = new xmldb_index('question_id_index', XMLDB_INDEX_NOTUNIQUE, ['exercise_id']);
+        if ($dbman->index_exists($table, $index)) {
+            $dbman->drop_index($table, $index);
+        }
 
+        // field exercise_id is nullable
+        $field = new xmldb_field('exercise_id', XMLDB_TYPE_CHAR, '255', null, null, null, null, 'question_id');
+        $dbman->change_field_notnull($table, $field);
+        
+        // add index on exercise_id
+        $index = new xmldb_index('exercise_id_index', XMLDB_INDEX_NOTUNIQUE, ['exercise_id']);
+        if (!$dbman->index_exists($table, $index)) {
+            $dbman->add_index($table, $index);
+        }
+
+        // Algebrakit savepoint reached
+        upgrade_plugin_savepoint(true, 20240131011, 'qtype', 'algebrakit');
+    }
     return true;
 }

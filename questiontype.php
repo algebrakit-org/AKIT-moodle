@@ -69,7 +69,6 @@ class qtype_algebrakit extends question_type
             $options = new stdClass();
             $options->exercise_id = $fromform->exercise_id;
             $options->exercise_in_json = $fromform->exercise_in_json;
-            $options->major_version = $fromform->major_version;
             $options->question_id = $fromform->id;
 
             $DB->insert_record('question_algebrakit', $options);
@@ -78,7 +77,6 @@ class qtype_algebrakit extends question_type
 
             $options->exercise_id = $fromform->exercise_id;
             $options->exercise_in_json = $fromform->exercise_in_json;
-            $options->major_version = $fromform->major_version;
             $DB->update_record('question_algebrakit', $options);
         }
     }
@@ -106,13 +104,14 @@ class qtype_algebrakit extends question_type
         // TODO.
         parent::initialise_question_instance($question, $questiondata);
         $question->exercise_id = $questiondata->options->exercise_id;
-        $question->major_version = $questiondata->options->major_version;
         $question->question_id = $questiondata->options->question_id;
         if (isset($questiondata->options->exercise_in_json)) {
             $question->exercise_in_json = $questiondata->options->exercise_in_json;
-        } else {
+            $question->exercise_id = null;
+        } else if (isset($questiondata->options->exercise_id)) {
+            $question->exercise_id = $questiondata->options->exercise_id;
             $question->exercise_in_json = null;
-        }
+        } 
     }
 
     public function get_random_guess_score($questiondata)

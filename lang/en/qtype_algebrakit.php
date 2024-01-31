@@ -24,14 +24,14 @@
 
 $string['pluginname'] = 'Algebrakit';
 $string['settingsPageTitle'] = 'Algebrakit Exercise Settings';
-$string['akit_exercise'] = "Editor";
+$string['akit_exerciseeditor'] = 'Algebrakit Editor';
+$string['akit_exerciseref'] = 'Algebrakit Exercise Reference';
 $string['exerciseid'] = 'Exercise ID';
-$string['majorversion'] = 'Major Version';
-$string['exerciseIdRequired'] = 'Exercise ID is required';
-$string['majorVersionRequired'] = 'Major version is required';
-$string['majorVersionInvalid'] = 'Major version must be an integer or "latest"';
+$string['exerciseIdRequired'] = 'Exercise is not defined';
 $string['apikey'] = 'API Key';
 $string['apikey_desc'] = 'A token used to access the Algebrakit API';
+$string['enable_embedded_editor'] = 'Use embedded Algebrakit editor';
+$string['enable_embedded_editor_desc'] = 'Deselect if you create content in the Algebrakit CMS and just enter the exercise ID in Moodle.';
 $string['akit_editor'] = 'Exercise Editor';
 
 

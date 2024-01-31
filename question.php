@@ -48,7 +48,6 @@ class qtype_algebrakit_question extends question_graded_automatically
     public $answers = array();
 
     public $exercise_id;
-    public $major_version;
 
     public $exercise_in_json;
 
@@ -88,7 +87,7 @@ class qtype_algebrakit_question extends question_graded_automatically
 
             //check if exercise is stored as json
 
-            $this->createSession($this->exercise_id, $this->major_version, $this->exercise_in_json);
+            $this->createSession($this->exercise_id, $this->exercise_in_json);
             $step->set_qt_var('_session', json_encode($this->session));
             $this->defaultmark = 0;
             if (isset($this->session) && is_array($this->session)) {
@@ -116,7 +115,7 @@ class qtype_algebrakit_question extends question_graded_automatically
         parent::apply_attempt_state($step);
     }
 
-    public function createSession($exerciseId, $majorVersion, $jsonBlob = null)
+    public function createSession($exerciseId, $jsonBlob = null)
     {
         if (empty($this->apiKey)) {
             $sess = new SessionResponse();
@@ -137,14 +136,14 @@ class qtype_algebrakit_question extends question_graded_automatically
             $exList = [
                 0 => [
                     'exerciseSpec' => $jsonBlob,
-                    'version' => intval($majorVersion) ? intval($majorVersion) : 'latest'
+                    'version' => 'latest'
                 ]
             ];
         } else {
             $exList = [
                 0 => [
                     'exerciseId' => $exerciseId,
-                    'version' => intval($majorVersion) ? intval($majorVersion) : 'latest'
+                    'version' => 'latest'
                 ]
             ];
         }

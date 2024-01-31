@@ -32,4 +32,10 @@ if ($ADMIN->fulltree) {
     get_string('apikey', 'qtype_algebrakit'), get_string('apikey_desc', 'qtype_algebrakit'),
     "", PARAM_TEXT));
 
+    $settings->add(new admin_setting_configcheckbox('qtype_algebrakit/enable_embedded_editor',
+    get_string('enable_embedded_editor', 'qtype_algebrakit'), get_string('enable_embedded_editor_desc', 'qtype_algebrakit'),
+    1, 1, 0));
+
+    
+
 }
