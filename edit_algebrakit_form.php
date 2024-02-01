@@ -23,12 +23,11 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-
 defined('MOODLE_INTERNAL') || die();
 
 require_once($CFG->dirroot . '/question/type/edit_question_form.php');
 require_once($CFG->dirroot . '/question/type/algebrakit/questiontype.php');
-
+require_once($CFG->dirroot . '/question/type/algebrakit/constants.php');
 
 /**
  * numerical editing form definition.
@@ -36,86 +35,143 @@ require_once($CFG->dirroot . '/question/type/algebrakit/questiontype.php');
  * @copyright  2007 Jamie Pratt me@jamiep.org
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class qtype_algebrakit_edit_form extends question_edit_form {
+class qtype_algebrakit_edit_form extends question_edit_form
+{
     /** @var int we always show at least this many sets of unit fields. */
     const UNITS_MIN_REPEATS = 1;
     const UNITS_TO_ADD = 2;
 
     protected $ap = null;
+    protected $useEditor = true;  // Use exercise editor (true) or exercise ID (false)
 
-    protected function definition_inner($mform) {
-        $this->add_exercise_options($mform);
-    }
+    protected function definition_inner($mform)
+    {
+        $this->useEditor = get_config('qtype_algebrakit', 'enable_embedded_editor');
 
-    /**
-     * Add the unit handling options to the form.
-     * @param object $mform the form being built.
-     */
-    protected function add_exercise_options($mform) {
-
+        // the stem is not mandatory, generally set in the Algebrakit exercise
         $i = array_search("questiontext", $mform->_required);
         array_splice($mform->_required, $i, 1);
         $mform->_rules['questiontext'] = array();
 
-        $mform->addElement('header', 'akit_exercise',
-                get_string('akit_exercise', 'qtype_algebrakit'));
+        if($this->useEditor){
+            $this->add_exercise_editor($mform);
+        } else {
+            $this->add_exerciseID_options($mform);
+        }
 
-        $mform->addElement('text', 'exercise_id',
-                get_string('exerciseid', 'qtype_algebrakit'));
+    }
 
-        $mform->addElement('text', 'major_version',
-                get_string('majorversion', 'qtype_algebrakit'));
+    /**
+     * Add the input fields for referring to an exercise in the CMS
+     * @param object $mform the form being built.
+     */
+    protected function add_exerciseID_options($mform)
+    {
+        $mform->addElement(
+            'header',
+            'akit_exercise',
+            get_string('akit_exerciseref', 'qtype_algebrakit')
+        );
+
+        $mform->addElement(
+            'text',
+            'exercise_id',
+            get_string('exerciseid', 'qtype_algebrakit')
+        );
 
         $mform->setType('exercise_id', PARAM_NOTAGS);
-        $mform->setType('major_version', PARAM_INT);
     }
 
-    public function validation($data, $files) {
+    protected function add_exercise_editor($mform)
+    {
+        global $CFG, $AK_MOODLE_WIDGET_URL, $AK_CDN_URL, $AK_PROXY_URL;
+
+        $mform->addElement(
+            'header',
+            'akit_exercise',
+            get_string('akit_exerciseeditor', 'qtype_algebrakit')
+        );
+
+        $mform->addElement(
+            'hidden',
+            'exercise_in_json'
+        );
+        $mform->setType('exercise_in_json', PARAM_RAW);
+
+        $html = "
+                           
+        <!--- Global object AlgebraKIT will be the front end API of AlgebraKiT and is used for configuration -->
+        <script>
+
+            AlgebraKIT = {
+                config: {
+                    secureProxy: {
+                        url: '{$AK_PROXY_URL}'
+                    }
+                }
+            }
+        </script>
+        
+        <script src=\"{$AK_CDN_URL}/akit-widgets.js\"></script>
+                           
+        <script type=\"module\" src='{$AK_MOODLE_WIDGET_URL}/moodle-widget.esm.js'></script>
+        <script src=\"https://cdn.jsdelivr.net/npm/quill@2.0.0-beta.0/dist/quill.min.js\"></script>
+        <moodle-algebrakit-exercise-loader></moodle-algebrakit-exercise-loader>
+        ";
+        //add html to the form
+        $mform->addElement('html', $html);
+    }
+
+    public function validation($data, $files)
+    {
         $errors = parent::validation($data, $files);
-        $errors = $this->validate_exercise_id($data, $errors);
-        $errors = $this->validate_major_version($data, $errors);
-        return $errors;
-    }
 
-    public function data_preprocessing($question) {
-        $question = parent::data_preprocessing($question);
-        $question = $this->data_preprocessing_options($question);
-        return $question;
-    }
-
-    public function data_preprocessing_options($question) {
-        if (!isset($question->options)) {
-            return $question;
-        }
-        $opt = $question->options;
-        $question->exercise_id = $opt->exercise_id;
-        $question->major_version = $opt->major_version;
-        $question->question_id = $opt->question_id;
-        return $question;
-    }
-
-    protected function validate_exercise_id($data, $errors) {
-        //Check exercise ID
+        $json = $data['exercise_in_json'];
         $exerciseId = $data['exercise_id'];
-        if (!isset($exerciseId) || trim($exerciseId) === '') {
+
+        if (isset($json) && strlen($json)>5) {
+            //remove errors for exercise_id
+            $data['exercise_id'] = '';
+        }  else if (isset($exerciseId) && strlen(trim($exerciseId)>4)) {
+            $data['exercise_in_json'] = '';         
+        } else {
             $errors['exerciseId'] = get_string('exerciseIdRequired', 'qtype_algebrakit');
         }
         return $errors;
     }
 
-    protected function validate_major_version($data, $errors) {
-        //Check major version
-        $majorVersion = $data['major_version'];
-        if (!isset($majorVersion) || trim($majorVersion) === '') {
-            $errors['majorversion'] = get_string('majorVersionRequired', 'qtype_algebrakit');
-        }
-        else if (!is_numeric($majorVersion) && $majorVersion !== 'latest') {
-            $errors['majorVersionInvalid'] = get_string('majorVersionRequired', 'qtype_algebrakit');
-        }
-        return $errors;
+    public function data_preprocessing($question)
+    {
+        $question = parent::data_preprocessing($question);
+        $question = $this->data_preprocessing_options($question);
+        return $question;
     }
 
-    public function qtype() {
+    public function data_preprocessing_options($question)
+    {
+        if (!isset($question->options)) {
+            return $question;
+        }
+
+        $opt = $question->options;
+        $question->question_id = $opt->question_id;
+
+        if (isset($opt->exercise_id)) {
+            $question->exercise_id = $opt->exercise_id;
+        } else {
+            $question->exercise_id = null;
+        }
+        if (isset($opt->exercise_in_json)) {
+            $question->exercise_in_json = $opt->exercise_in_json;
+        } else {
+            $question->exercise_in_json = null;
+        }
+
+        return $question;
+    }
+
+    public function qtype()
+    {
         return 'algebrakit';
     }
 }

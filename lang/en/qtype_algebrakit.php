@@ -22,16 +22,17 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-$string['pluginname'] = 'AlgebraKiT';
-$string['settingsPageTitle'] = 'AlgebraKiT Exercise Settings';
-$string['akit_exercise'] = "AlgebraKiT Exercise";
+$string['pluginname'] = 'Algebrakit';
+$string['settingsPageTitle'] = 'Algebrakit Exercise Settings';
+$string['akit_exerciseeditor'] = 'Algebrakit Editor';
+$string['akit_exerciseref'] = 'Algebrakit Exercise Reference';
 $string['exerciseid'] = 'Exercise ID';
-$string['majorversion'] = 'Major Version';
-$string['exerciseIdRequired'] = 'Exercise ID is required';
-$string['majorVersionRequired'] = 'Major version is required';
-$string['majorVersionInvalid'] = 'Major version must be an integer or "latest"';
+$string['exerciseIdRequired'] = 'Exercise is not defined';
 $string['apikey'] = 'API Key';
-$string['apikey_desc'] = 'A token used to access the AlgebraKiT API';
+$string['apikey_desc'] = 'A token used to access the Algebrakit API';
+$string['enable_embedded_editor'] = 'Use embedded Algebrakit editor';
+$string['enable_embedded_editor_desc'] = 'Deselect if you create content in the Algebrakit CMS and just enter the exercise ID in Moodle.';
+$string['akit_editor'] = 'Exercise Editor';
 
 
 //OLD (from pliugin used a stemplate)
@@ -41,10 +42,10 @@ $string['addmoreanswerblanks'] = 'Blanks for {no} more answers';
 $string['addmoreunitblanks'] = 'Blanks for {no} more units';
 $string['answercolon'] = 'Answer:';
 $string['pleaseenterananswer'] = 'Please enter an answer.';
-$string['pluginname_help'] = 'The AlgebraKiT question type shows the student one or more AlgebraKiT interactions that can be used to sole mathematical problems. This includes solving the problem step-by-step and provide feedback on the student\'s answers';
+$string['pluginname_help'] = 'The Algebrakit question type shows the student one or more Algebrakit interactions that can be used to sole mathematical problems. This includes solving the problem step-by-step and provide feedback on the student\'s answers';
 $string['pluginname_link'] = 'question/type/algebrakit';
-$string['pluginnameadding'] = 'Adding an AlgebraKiT question';
-$string['pluginnameediting'] = 'Editing an AlgebraKiT question';
+$string['pluginnameadding'] = 'Adding an Algebrakit question';
+$string['pluginnameediting'] = 'Editing an Algebrakit question';
 $string['pluginnamesummary'] = 'Solving math problems step-by-step using various interaction types and feedback';
-$string['privacy:metadata'] = 'The an AlgebraKiT question type plugin does not store any personal data.';
+$string['privacy:metadata'] = 'The an Algebrakit question type plugin does not store any personal data.';
 $string['relative'] = 'Relative';

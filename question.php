@@ -29,7 +29,8 @@ defined('MOODLE_INTERNAL') || die();
 require_once($CFG->dirroot . '/question/type/questionbase.php');
 require_once($CFG->dirroot . '/question/type/algebrakit/lib.php');
 
-class SessionResponse {
+class SessionResponse
+{
     public $success;
     public $msg;
     public $sessions;
@@ -41,12 +42,15 @@ class SessionResponse {
  * @copyright  2009 The Open University
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class qtype_algebrakit_question extends question_graded_automatically {
+class qtype_algebrakit_question extends question_graded_automatically
+{
     /** @var array of question_answer. */
     public $answers = array();
 
     public $exercise_id;
-    public $major_version;
+
+    public $exercise_in_json;
+
     public $question_id;
 
     public $session;
@@ -57,24 +61,33 @@ class qtype_algebrakit_question extends question_graded_automatically {
     /** @var qtype_algebrakit_answer_processor */
     public $ap;
 
-    public function __construct() {
+    public function __construct()
+    {
         $this->apiKey = get_config('qtype_algebrakit', 'apikey');
     }
 
-    public function get_expected_data() {
+    public function get_expected_data()
+    {
         return array('_session' => PARAM_RAW_TRIMMED);
     }
 
-    public function start_attempt(question_attempt_step $step, $variant) {
-        $this->session = json_decode($step->get_qt_var('_session'));
+    public function start_attempt(question_attempt_step $step, $variant)
+    {
         $this->defaultmark = (int) $step->get_qt_var('_marksTotal');
+
+        $sessionVar = $step->get_qt_var('_session');
+        if($sessionVar!=null) {
+            $this->session = json_decode($step->get_qt_var('_session'));
+        }
 
         if ($this->session !== null) {
             //Create exercise tag and continue
             $this->continued = true;
-        }
-        else {
-            $this->createSession($this->exercise_id, $this->major_version);
+        } else {
+
+            //check if exercise is stored as json
+
+            $this->createSession($this->exercise_id, $this->exercise_in_json);
             $step->set_qt_var('_session', json_encode($this->session));
             $this->defaultmark = 0;
             if (isset($this->session) && is_array($this->session)) {
@@ -92,7 +105,8 @@ class qtype_algebrakit_question extends question_graded_automatically {
         }
     }
 
-    public function apply_attempt_state(question_attempt_step $step) {
+    public function apply_attempt_state(question_attempt_step $step)
+    {
         $this->session = json_decode($step->get_qt_var('_session'));
         $this->defaultmark = (int) $step->get_qt_var('_marksTotal');
         if ($this->session != null) {
@@ -101,39 +115,58 @@ class qtype_algebrakit_question extends question_graded_automatically {
         parent::apply_attempt_state($step);
     }
 
-    public function createSession($exerciseId, $majorVersion) {
+    public function createSession($exerciseId, $jsonBlob = null)
+    {
         if (empty($this->apiKey)) {
             $sess = new SessionResponse();
             $sess->success = false;
-            $sess->msg = 'No API Key is set. Go to the settings for the AlgebraKiT plugin to enter an API Key.';
+            $sess->msg = 'No API Key is set. Go to the settings for the Algebrakit plugin to enter an API Key.';
             $sess->sessions = [];
             $this->session = [
                 $sess
             ];
             return;
         }
-        $exList = [
-            0 => [
-                'exerciseId' => $exerciseId,
-                'version' => intval($majorVersion) ? intval($majorVersion) : 'latest'
-            ]
-        ];
+        //check jsonblob length > 5
+        if ($jsonBlob && strlen($jsonBlob)>5) {
+            
+            //convert string to json
+            $jsonBlob = json_decode($jsonBlob);
+
+            $exList = [
+                0 => [
+                    'exerciseSpec' => $jsonBlob,
+                    'version' => 'latest'
+                ]
+            ];
+        } else {
+            $exList = [
+                0 => [
+                    'exerciseId' => $exerciseId,
+                    'version' => 'latest'
+                ]
+            ];
+        }
+
         $data = array(
             'apiVersion' => 2,
             'exercises' => $exList
         );
         $this->session = akitPost('/session/create', $data, $this->apiKey);
+        error_log(''. json_encode($this->session));
     }
 
-    public function summarise_response(array $response) {
+    public function summarise_response(array $response)
+    {
         if (isset($response['_session'])) {
-            return "View the indivudual questions to see the responses";
+            return "View the individual questions to see the responses";
         } else {
             return null;
         }
     }
 
-    public function un_summarise_response(string $summary) {
+    public function un_summarise_response(string $summary)
+    {
         if (!empty($summary)) {
             return ['_session' => $summary];
         } else {
@@ -141,31 +174,38 @@ class qtype_algebrakit_question extends question_graded_automatically {
         }
     }
 
-    public function is_gradable_response(array $response) {
+    public function is_gradable_response(array $response)
+    {
         return true;
     }
 
-    public function is_complete_response(array $response) {
+    public function is_complete_response(array $response)
+    {
         return true;
     }
 
-    public function get_validation_error(array $response) {
+    public function get_validation_error(array $response)
+    {
         return '';
     }
 
-    public function is_same_response(array $prevresponse, array $newresponse) {
+    public function is_same_response(array $prevresponse, array $newresponse)
+    {
         return false;
     }
 
-    public function get_correct_response() {
+    public function get_correct_response()
+    {
         return ["solutionMode"];
     }
 
-    public function get_right_answer_summary() {
+    public function get_right_answer_summary()
+    {
         return "Open the exercise to view the correct answer";
     }
 
-    public function grade_response(array $response) {
+    public function grade_response(array $response)
+    {
         $sessionObj = json_decode($response["_session"]);
         $sessionId = $sessionObj[0]->sessions[0]->sessionId;
         $data = array(
@@ -175,22 +215,33 @@ class qtype_algebrakit_question extends question_graded_automatically {
         if (isset($scoreObj->success) && $scoreObj->success === false) {
             //throw new coding_exception("Invalid response when getting score for question", "Score Response: ".json_encode($scoreObj).";\nSession info: ".$response['_session']);
             $fraction = 0;
-        }
-        else {
+        } else {
             $fraction = $scoreObj->scoring->marksEarned / $scoreObj->scoring->marksTotal;
         }
         return array($fraction, question_state::graded_state_for_fraction($fraction));
     }
 
-    public function check_file_access($qa, $options, $component, $filearea,
-            $args, $forcedownload) {
+    public function check_file_access(
+        $qa,
+        $options,
+        $component,
+        $filearea,
+        $args,
+        $forcedownload
+    ) {
         // TODO.
         if ($component == 'question' && $filearea == 'hint') {
             return $this->check_hint_file_access($qa, $options, $args);
 
         } else {
-            return parent::check_file_access($qa, $options, $component, $filearea,
-                    $args, $forcedownload);
+            return parent::check_file_access(
+                $qa,
+                $options,
+                $component,
+                $filearea,
+                $args,
+                $forcedownload
+            );
         }
     }
 }

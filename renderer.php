@@ -23,6 +23,7 @@
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+ require_once($CFG->dirroot . '/question/type/algebrakit/constants.php');
 
 /**
  * Generates the output for short answer questions.
@@ -103,7 +104,7 @@ class qtype_algebrakit_renderer extends qtype_renderer {
     }
 
     public function continueSession() {
-        global $CFG;
+        global $CFG, $AK_CDN_URL;
         $html = "";
         if (!empty($this->questionsummary)) {
             $html .= $this->questionsummary;
@@ -144,9 +145,10 @@ class qtype_algebrakit_renderer extends qtype_renderer {
                     $html .= "Failed to generate session for exercise.";
                 }
             } 
+
             $script = file_get_contents($CFG->dirroot . '/question/type/algebrakit/widgetLoader.js');
-            // $html .= "<link rel='stylesheet' href='https://cdn.jsdelivr.net/npm/katex@0.10.1/dist/katex.min.css'></script>";
-            // $html .= "<script src='https://cdn.jsdelivr.net/npm/katex@0.10.1/dist/katex.min.js'></script>";
+            $script = str_replace('AK_WIDGETS_URL',$AK_CDN_URL, $script);
+
             $html .= "
             <script>
                 $script
