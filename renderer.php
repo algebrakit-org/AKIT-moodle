@@ -45,7 +45,7 @@ class qtype_algebrakit_renderer extends qtype_renderer {
 
         $question = $qa->get_question();
 
-        $this->questionsummary = $qa->get_question()->questiontext;
+        $this->questionsummary = $question->questiontext;
 
         $qtData = $qa->get_last_qt_data();
         if (in_array('solutionMode', $qtData)) {
@@ -57,19 +57,8 @@ class qtype_algebrakit_renderer extends qtype_renderer {
         $this->session = $question->session;
         $this->continued = $question->continued;
 
-        $result = $this->continueSession();
+        $result = $this->showQuestion();
 
-        $sessionInputname = $qa->get_qt_field_name('_session');
-        $sessionJSON = json_encode($this->session);
-
-        $sessionAttributes = array(
-            'type' => 'hidden',
-            'name' => $sessionInputname,
-            'value' => $sessionJSON,
-            'id' => $sessionInputname,
-        );
-
-        $result .= html_writer::empty_tag('input', $sessionAttributes);
 
         return $result;
     }
@@ -103,17 +92,18 @@ class qtype_algebrakit_renderer extends qtype_renderer {
         return null;
     }
 
-    public function continueSession() {
-        global $CFG, $AK_CDN_URL;
+    public function showQuestion() {
+        global $CFG, $AK_CDN_URL, $PAGE;
+
         $html = "";
         if (!empty($this->questionsummary)) {
             $html .= $this->questionsummary;
         }
+
         $err = qtype_algebrakit_renderer::getSessionError($this->session);
         if ($err != null) {
             $html .= "Failed to generate session for exercise: <br/> $err";
-        }
-        else {
+        } else {
             for ($ii = 0; $ii < count($this->session); $ii++) {
                 $ex = $this->session[$ii];
                 if($ex->success) {
@@ -139,21 +129,13 @@ class qtype_algebrakit_renderer extends qtype_renderer {
                         else {
                             $html .= $ex->sessions[$nn]->html;
                         }
-                        
                     }
                 } else if ($ex != null) {
                     $html .= "Failed to generate session for exercise.";
                 }
             } 
 
-            $script = file_get_contents($CFG->dirroot . '/question/type/algebrakit/widgetLoader.js');
-            $script = str_replace('AK_WIDGETS_URL',$AK_CDN_URL, $script);
-
-            $html .= "
-            <script>
-                $script
-            </script>
-            ";
+            $PAGE->requires->js_call_amd('qtype_algebrakit/question', 'init', [$AK_CDN_URL]);
         }
         return $html;
     }

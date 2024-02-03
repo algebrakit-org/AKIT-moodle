@@ -37,12 +37,9 @@ require_once($CFG->dirroot . '/question/type/algebrakit/constants.php');
  */
 class qtype_algebrakit_edit_form extends question_edit_form
 {
-    /** @var int we always show at least this many sets of unit fields. */
-    const UNITS_MIN_REPEATS = 1;
-    const UNITS_TO_ADD = 2;
-
-    protected $ap = null;
     protected $useEditor = true;  // Use exercise editor (true) or exercise ID (false)
+    protected $audienceSpec;      // JSON definition of the audiences in the editor
+    protected $blacklist;         // JSON array of question types that should not be visible in the editor
 
     protected function definition_inner($mform)
     {
@@ -53,14 +50,16 @@ class qtype_algebrakit_edit_form extends question_edit_form
         array_splice($mform->_required, $i, 1);
         $mform->_rules['questiontext'] = array();
 
+        // to do: audiences should be defined in the settings
+        $this->audienceSpec = '[{ "name": "English Higher Secondary", "id": "uk_KS5" }, { "name": "English Lower Secondary", "id": "uk_KS3" }]';
+        $this->blacklist = '["NUMBER_LINE", "STAT_SINGLE_VIEW", "STAT_MULTI_VIEW","STATISTICS"]';
+
         if($this->useEditor){
             $this->add_exercise_editor($mform);
         } else {
             $this->add_exerciseID_options($mform);
         }
-
     }
-
     /**
      * Add the input fields for referring to an exercise in the CMS
      * @param object $mform the form being built.
@@ -84,22 +83,40 @@ class qtype_algebrakit_edit_form extends question_edit_form
 
     protected function add_exercise_editor($mform)
     {
-        global $CFG, $AK_MOODLE_WIDGET_URL, $AK_CDN_URL, $AK_PROXY_URL;
+        global $CFG, $AK_MOODLE_WIDGET_URL, $AK_CDN_URL, $AK_PROXY_URL, $PAGE;
 
+        // add section with header "Algebrakit Editor"
         $mform->addElement(
             'header',
             'akit_exercise',
             get_string('akit_exerciseeditor', 'qtype_algebrakit')
         );
 
+        // add hidden input field that contains the exercise in JSON format. This input field serves as
+        // the bridge between the editor and the Moodle question type.
         $mform->addElement(
             'hidden',
             'exercise_in_json'
         );
         $mform->setType('exercise_in_json', PARAM_RAW);
 
-        $html = "
-                           
+        $html = <<<EOD
+
+        <akit-exercise-editor audiences='{$this->audienceSpec}'
+          allow-assets="false" enable-preview="false" enable-basic-info="false"
+          interaction-blacklist='{$this->blacklist}' enable-id-field="false" >
+        </akit-exercise-editor>
+
+        <div class="qtype_algebrakit-editor-button-wrapper">
+          <button class="algebrakit-button" data-action="qtype_algebrakit/editor-run_button" type="button">Preview</button>
+        </div>
+        
+        <div class="qtype_algebrakit-editor-akit-preview" data-action="qtype_algebrakit/editor-preview_div">
+            <!--
+            <akit-exercise-preview showRunButton="false" exerciseId={this.exerciseId}></akit-exercise-preview>
+            -->
+        </div>
+
         <!--- Global object AlgebraKIT will be the front end API of AlgebraKiT and is used for configuration -->
         <script>
 
@@ -112,14 +129,12 @@ class qtype_algebrakit_edit_form extends question_edit_form
             }
         </script>
         
-        <script src=\"{$AK_CDN_URL}/akit-widgets.js\"></script>
-                           
-        <script type=\"module\" src='{$AK_MOODLE_WIDGET_URL}/moodle-widget.esm.js'></script>
-        <script src=\"https://cdn.jsdelivr.net/npm/quill@2.0.0-beta.0/dist/quill.min.js\"></script>
-        <moodle-algebrakit-exercise-loader></moodle-algebrakit-exercise-loader>
-        ";
-        //add html to the form
+        <script src="{$AK_CDN_URL}"></script>
+        <script src="https://cdn.jsdelivr.net/npm/quill@2.0.0-beta.0/dist/quill.min.js"></script>
+EOD; 
+
         $mform->addElement('html', $html);
+        $PAGE->requires->js_call_amd('qtype_algebrakit/editor', 'init', [$AK_CDN_URL, $AK_PROXY_URL]);
     }
 
     public function validation($data, $files)
