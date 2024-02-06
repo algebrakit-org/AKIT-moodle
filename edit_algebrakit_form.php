@@ -30,10 +30,9 @@ require_once($CFG->dirroot . '/question/type/algebrakit/questiontype.php');
 require_once($CFG->dirroot . '/question/type/algebrakit/constants.php');
 
 /**
- * numerical editing form definition.
+ * Input form for an Algebrakit question.
  *
- * @copyright  2007 Jamie Pratt me@jamiep.org
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @copyright  2024 algebrakit.com
  */
 class qtype_algebrakit_edit_form extends question_edit_form
 {
@@ -43,53 +42,12 @@ class qtype_algebrakit_edit_form extends question_edit_form
 
     protected function definition_inner($mform)
     {
-        $this->useEditor = get_config('qtype_algebrakit', 'enable_embedded_editor');
+        global $CFG, $AK_CDN_URL, $AK_PROXY_URL, $PAGE;
 
-        // the stem is not mandatory, generally set in the Algebrakit exercise
-        $i = array_search("questiontext", $mform->_required);
-        array_splice($mform->_required, $i, 1);
-        $mform->_rules['questiontext'] = array();
-
-        // to do: audiences should be defined in the settings
-        $this->audienceSpec = '[{ "name": "English Higher Secondary", "id": "uk_KS5" }, { "name": "English Lower Secondary", "id": "uk_KS3" }]';
-        $this->blacklist = '["NUMBER_LINE", "STAT_SINGLE_VIEW", "STAT_MULTI_VIEW","STATISTICS"]';
-
-        if($this->useEditor){
-            $this->add_exercise_editor($mform);
-        } else {
-            $this->add_exerciseID_options($mform);
-        }
-    }
-    /**
-     * Add the input fields for referring to an exercise in the CMS
-     * @param object $mform the form being built.
-     */
-    protected function add_exerciseID_options($mform)
-    {
         $mform->addElement(
             'header',
             'akit_exercise',
-            get_string('akit_exerciseref', 'qtype_algebrakit')
-        );
-
-        $mform->addElement(
-            'text',
-            'exercise_id',
-            get_string('exerciseid', 'qtype_algebrakit')
-        );
-
-        $mform->setType('exercise_id', PARAM_NOTAGS);
-    }
-
-    protected function add_exercise_editor($mform)
-    {
-        global $CFG, $AK_MOODLE_WIDGET_URL, $AK_CDN_URL, $AK_PROXY_URL, $PAGE;
-
-        // add section with header "Algebrakit Editor"
-        $mform->addElement(
-            'header',
-            'akit_exercise',
-            get_string('akit_exerciseeditor', 'qtype_algebrakit')
+            get_string('akit_exerciseheader', 'qtype_algebrakit')
         );
 
         // add hidden input field that contains the exercise in JSON format. This input field serves as
@@ -100,41 +58,36 @@ class qtype_algebrakit_edit_form extends question_edit_form
         );
         $mform->setType('exercise_in_json', PARAM_RAW);
 
-        $html = <<<EOD
+        $mform->addElement(
+            'text',
+            'exercise_id',
+            get_string('exerciseid', 'qtype_algebrakit')
+        );
+        $mform->setType('exercise_id', PARAM_NOTAGS);
 
-        <akit-exercise-editor audiences='{$this->audienceSpec}'
-          allow-assets="false" enable-preview="false" enable-basic-info="false"
-          interaction-blacklist='{$this->blacklist}' enable-id-field="false" >
-        </akit-exercise-editor>
-
-        <div class="qtype_algebrakit-editor-button-wrapper">
-          <button class="algebrakit-button" data-action="qtype_algebrakit/editor-run_button" type="button">Preview</button>
-        </div>
-        
-        <div class="qtype_algebrakit-editor-akit-preview" data-action="qtype_algebrakit/editor-preview_div">
-            <!--
-            <akit-exercise-preview showRunButton="false" exerciseId={this.exerciseId}></akit-exercise-preview>
-            -->
-        </div>
-
-        <!--- Global object AlgebraKIT will be the front end API of AlgebraKiT and is used for configuration -->
-        <script>
-
-            AlgebraKIT = {
-                config: {
-                    secureProxy: {
-                        url: '{$AK_PROXY_URL}'
-                    }
-                }
-            }
-        </script>
-        
-        <script src="{$AK_CDN_URL}"></script>
-        <script src="https://cdn.jsdelivr.net/npm/quill@2.0.0-beta.0/dist/quill.min.js"></script>
-EOD; 
-
+        // the Algebrakit editor will be inserted here, if requird
+        $html = '<div class="qtype_algebrakit-editor-container" data-action="qtype_algebrakit/editor-container_div"></div>';
+        $html.= '<script src="https://cdn.jsdelivr.net/npm/quill@2.0.0-beta.0/dist/quill.min.js"></script>';
         $mform->addElement('html', $html);
-        $PAGE->requires->js_call_amd('qtype_algebrakit/editor', 'init', [$AK_CDN_URL, $AK_PROXY_URL]);
+
+        // Get setting to use editor or exercise ID.
+        // Note that some old questions might deviate. E.g. the editor is enabled in the settings
+        // but the question uses an exercise ID.
+        $this->useEditor = get_config('qtype_algebrakit', 'enable_embedded_editor');
+
+
+        // the stem is not mandatory, generally set in the Algebrakit exercise
+        $i = array_search("questiontext", $mform->_required);
+        array_splice($mform->_required, $i, 1);
+        $mform->_rules['questiontext'] = array();
+
+        // to do: audiences should be defined in the settings
+        $this->audienceSpec = '[{ "name": "English Higher Secondary", "id": "uk_KS5" }, { "name": "English Lower Secondary", "id": "uk_KS3" }]';
+        $this->blacklist = '["NUMBER_LINE", "STAT_SINGLE_VIEW", "STAT_MULTI_VIEW","STATISTICS"]';
+
+
+        $PAGE->requires->js_call_amd('qtype_algebrakit/editor', 'init', [$AK_CDN_URL, $AK_PROXY_URL,$this->useEditor,$this->audienceSpec,$this->blacklist]);
+        // $this->add_exercise_editor($mform);
     }
 
     public function validation($data, $files)

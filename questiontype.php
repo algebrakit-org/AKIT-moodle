@@ -32,13 +32,9 @@ require_once($CFG->dirroot . '/question/type/algebrakit/question.php');
 
 
 /**
- * The numerical question type class.
+ * The Algebrakit question type class.
  *
- * This class contains some special features in order to make the
- * question type embeddable within a multianswer (cloze) question
- *
- * @copyright  1999 onwards Martin Dougiamas {@link http://moodle.com}
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @copyright  2024 Algebrakit BV
  */
 class qtype_algebrakit extends question_type
 {

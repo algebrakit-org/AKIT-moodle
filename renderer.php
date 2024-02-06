@@ -26,7 +26,7 @@
  require_once($CFG->dirroot . '/question/type/algebrakit/constants.php');
 
 /**
- * Generates the output for short answer questions.
+ * Generates the html for an Algebrakit question.
  *
  * @copyright 2009 The Open University
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later

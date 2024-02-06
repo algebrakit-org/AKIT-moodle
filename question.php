@@ -18,9 +18,8 @@
  * AlgebraKiT question definition class.
  *
  * @package    qtype
- * @subpackage numerical
- * @copyright  2009 The Open University
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @subpackage algebrakit
+ * @copyright  20024 Algebrakit BV, the Netherlands
  */
 
 
@@ -37,10 +36,8 @@ class SessionResponse
 }
 
 /**
- * Represents a numerical question.
+ * Represents an Algebrakit question.
  *
- * @copyright  2009 The Open University
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class qtype_algebrakit_question extends question_graded_automatically
 {
@@ -109,9 +106,12 @@ class qtype_algebrakit_question extends question_graded_automatically
     {
         $this->session = json_decode($step->get_qt_var('_session'));
         $this->defaultmark = (int) $step->get_qt_var('_marksTotal');
+
+        
         if ($this->session != null) {
             $this->continued = true;
         }
+
         parent::apply_attempt_state($step);
     }
 
@@ -206,8 +206,7 @@ class qtype_algebrakit_question extends question_graded_automatically
 
     public function grade_response(array $response)
     {
-        $sessionObj = json_decode($response["_session"]);
-        $sessionId = $sessionObj[0]->sessions[0]->sessionId;
+        $sessionId = $this->session[0]->sessions[0]->sessionId;
         $data = array(
             'sessionId' => $sessionId
         );
@@ -218,6 +217,7 @@ class qtype_algebrakit_question extends question_graded_automatically
         } else {
             $fraction = $scoreObj->scoring->marksEarned / $scoreObj->scoring->marksTotal;
         }
+
         return array($fraction, question_state::graded_state_for_fraction($fraction));
     }
 

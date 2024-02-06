@@ -24,8 +24,7 @@
 
 $string['pluginname'] = 'Algebrakit';
 $string['settingsPageTitle'] = 'Algebrakit Exercise Settings';
-$string['akit_exerciseeditor'] = 'Algebrakit Editor';
-$string['akit_exerciseref'] = 'Algebrakit Exercise Reference';
+$string['akit_exerciseheader'] = 'Algebrakit Question Definition';
 $string['exerciseid'] = 'Exercise ID';
 $string['exerciseIdRequired'] = 'Exercise is not defined';
 $string['apikey'] = 'API Key';
