@@ -24,6 +24,8 @@ export const init = (cdnUrl) => {
 };
 
 class AKQuestion {
+    submitClicked = false;
+
     get form() {
         return document.querySelector(Selectors.actions.reponseForm);
     }
@@ -35,10 +37,17 @@ class AKQuestion {
     }
 
     constructor() {
-        this.submitButton.addEventListener('click', () => this.submitQuestion());
+        this.submitButton.addEventListener('click', (evt) => this.submitQuestion(evt));
     }
 
-    submitQuestion() {
-        return this.exercise.submit();
+    async submitQuestion(evt) {
+        if(this.submitClicked) {
+            this.submitButton = false;
+        } else {
+            evt.preventDefault();
+            await this.exercise.submit();
+            this.submitClicked = true;
+            this.submitButton.click();
+        }
     }
 }
