@@ -67,7 +67,6 @@ class qtype_algebrakit_edit_form extends question_edit_form
 
         // the Algebrakit editor will be inserted here, if requird
         $html = '<div class="qtype_algebrakit-editor-container" data-action="qtype_algebrakit/editor-container_div"></div>';
-        $html.= '<script src="https://cdn.jsdelivr.net/npm/quill@2.0.0-beta.0/dist/quill.min.js"></script>';
         $mform->addElement('html', $html);
 
         // Get setting to use editor or exercise ID.

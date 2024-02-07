@@ -176,7 +176,7 @@ class qtype_algebrakit_question extends question_graded_automatically
 
     public function is_gradable_response(array $response)
     {
-        return true;
+        return $scoreObj->scoring->marksTotal > 0;
     }
 
     public function is_complete_response(array $response)
@@ -214,9 +214,18 @@ class qtype_algebrakit_question extends question_graded_automatically
         if (isset($scoreObj->success) && $scoreObj->success === false) {
             //throw new coding_exception("Invalid response when getting score for question", "Score Response: ".json_encode($scoreObj).";\nSession info: ".$response['_session']);
             $fraction = 0;
+        } else if($scoreObj->scoring->marksTotal == 0) {
+            // non-scorable question
+            $fraction = 0;
         } else {
             $fraction = $scoreObj->scoring->marksEarned / $scoreObj->scoring->marksTotal;
         }
+
+        error_log(
+            'DEBUG GRADE_RESPONSE:    '.$fraction,
+            0
+        );
+
 
         return array($fraction, question_state::graded_state_for_fraction($fraction));
     }

@@ -30,14 +30,20 @@ class AKQuestion {
         return document.querySelector(Selectors.actions.reponseForm);
     }
     get submitButton() {
+        if(!this.form) {
+            return;
+        }
         return this.form.querySelector('input[name="next"]');
     }
     get exercise() {
+        if(!this.form) {
+            return;
+        }
         return this.form.querySelector('akit-exercise');
     }
 
     constructor() {
-        this.submitButton.addEventListener('click', (evt) => this.submitQuestion(evt));
+        this.submitButton?.addEventListener('click', (evt) => this.submitQuestion(evt));
     }
 
     async submitQuestion(evt) {
