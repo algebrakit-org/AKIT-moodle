@@ -32,6 +32,14 @@ if ($ADMIN->fulltree) {
     get_string('apikey', 'qtype_algebrakit'), get_string('apikey_desc', 'qtype_algebrakit'),
     "", PARAM_TEXT));
 
+    $menu = [
+        new lang_string('europe', 'qtype_algebrakit'),
+        new lang_string('singapore', 'qtype_algebrakit')
+    ];
+    $settings->add(new admin_setting_configselect('qtype_algebrakit/region',
+    new lang_string('region', 'qtype_algebrakit'),
+    new lang_string('region_desc', 'qtype_algebrakit'), '0', $menu));
+
     $settings->add(new admin_setting_configcheckbox('qtype_algebrakit/enable_embedded_editor',
     get_string('enable_embedded_editor', 'qtype_algebrakit'), get_string('enable_embedded_editor_desc', 'qtype_algebrakit'),
     1, 1, 0));

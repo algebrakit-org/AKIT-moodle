@@ -38,7 +38,6 @@ function akitPost($url, $data, $apiKey)
     
     $url = $AK_API_URL . $url;
     $dataString = json_encode($data);
-    error_log("" . $url . "" . $dataString);
 
     $curl = curl_init($url);
     curl_setopt($curl, CURLOPT_HEADER, false);
@@ -48,12 +47,5 @@ function akitPost($url, $data, $apiKey)
     curl_setopt($curl, CURLOPT_POSTFIELDS, $dataString);
     $json_response = curl_exec($curl);
 
-    error_log("" . $json_response);
     return json_decode($json_response);
 }
-
-
-// TODO algebrakit logo
-// AlgebraKiT 
-// Preview
-// view derivation

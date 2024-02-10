@@ -15,12 +15,18 @@ const AK = (typeof(AlgebraKIT) == 'undefined')
 /* eslint-enable */
 
 export const init = (cdnUrl) => {
+    // Let requireJS know where to find the jsxgraphcore library
+    let existingConfig = require.s.contexts._.config;
+    existingConfig.paths['jsxgraphcore'] =  cdnUrl.replace('akit-widgets', 'jsxgraphcore').replace('.js', '');
+
+    // Load the Algebrakit library
     if (!AK._api) {
         let script = document.createElement('script');
         script.src = cdnUrl;
         document.body.appendChild(script);
-        new AKQuestion();
     }
+
+    new AKQuestion();
 };
 
 class AKQuestion {
@@ -29,11 +35,17 @@ class AKQuestion {
     get form() {
         return document.querySelector(Selectors.actions.reponseForm);
     }
-    get submitButton() {
+    get nextButton() {
         if(!this.form) {
             return;
         }
         return this.form.querySelector('input[name="next"]');
+    }
+    get prevButton() {
+        if(!this.form) {
+            return;
+        }
+        return this.form.querySelector('input[name="previous"]');
     }
     get exercise() {
         if(!this.form) {
@@ -43,17 +55,22 @@ class AKQuestion {
     }
 
     constructor() {
-        this.submitButton?.addEventListener('click', (evt) => this.submitQuestion(evt));
+        this.nextButton?.addEventListener('click', (evt) => this.submitQuestion(evt, true));
+        this.prevButton?.addEventListener('click', (evt) => this.submitQuestion(evt, false));
     }
 
-    async submitQuestion(evt) {
+    async submitQuestion(evt, next) {
         if(this.submitClicked) {
-            this.submitButton = false;
+            // prevent loop
         } else {
             evt.preventDefault();
-            await this.exercise.submit();
             this.submitClicked = true;
-            this.submitButton.click();
+            await this.exercise.submit();
+            if(next) {
+                this.nextButton.click();
+            } else {
+                this.prevButton.click();
+            }
         }
     }
 }

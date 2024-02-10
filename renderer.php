@@ -36,6 +36,8 @@ class qtype_algebrakit_renderer extends qtype_renderer {
     protected $session;
     protected $solutionMode = false;
     protected $reviewMode = false;
+
+    // True if the question was already started before and we are returning to it
     protected $continued = false;
 
     protected $questionText;
@@ -117,7 +119,7 @@ class qtype_algebrakit_renderer extends qtype_renderer {
                         $attributes = array(
                             'session-id' => $sessionId,
                         );
-                        if ($this->solutionMode || $this->continued) {
+                        if ($this->solutionMode || $this->reviewMode || $this->continued) {
                             if ($this->solutionMode) {
                                 $attributes['solution-mode'] = true;
                             }

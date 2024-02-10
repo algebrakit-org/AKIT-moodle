@@ -97,7 +97,6 @@ class qtype_algebrakit extends question_type
 
     protected function initialise_question_instance(question_definition $question, $questiondata)
     {
-        // TODO.
         parent::initialise_question_instance($question, $questiondata);
         $question->exercise_id = $questiondata->options->exercise_id;
         $question->question_id = $questiondata->options->question_id;

@@ -44,19 +44,20 @@ class qtype_algebrakit_question extends question_graded_automatically
     /** @var array of question_answer. */
     public $answers = array();
 
+    // either exercise ID or exercise spec in JSON is required
     public $exercise_id;
-
     public $exercise_in_json;
-
     public $question_id;
 
-    public $session;
-    public $continued = false;
+    // number of marks for this exercuse (all interactions combined)
+    public $marksTotal;
 
     protected $apiKey = null;
+    public $session;
 
-    /** @var qtype_algebrakit_answer_processor */
-    public $ap;
+    // True if the question was already started before and we are returning to it
+    // This value is used in renderer.php to improve performance
+    public $continued = false;
 
     public function __construct()
     {
@@ -68,53 +69,59 @@ class qtype_algebrakit_question extends question_graded_automatically
         return array('_session' => PARAM_RAW_TRIMMED);
     }
 
+    /**
+     * Start a new question.
+     * @param question_attempt_step $step The step to start the attempt for.
+     * @param int $variant The variant to start the attempt for.
+     */
     public function start_attempt(question_attempt_step $step, $variant)
     {
-        $this->defaultmark = (int) $step->get_qt_var('_marksTotal');
-
+        $this->marksTotal = (int) $step->get_qt_var('_marksTotal');
+        
         $sessionVar = $step->get_qt_var('_session');
         if($sessionVar!=null) {
             $this->session = json_decode($step->get_qt_var('_session'));
         }
 
-        if ($this->session !== null) {
-            //Create exercise tag and continue
-            $this->continued = true;
-        } else {
+        if ($this->session == null) {
+            $this->session = $this->createSession($this->exercise_id, $this->exercise_in_json);
 
-            //check if exercise is stored as json
-
-            $this->createSession($this->exercise_id, $this->exercise_in_json);
-            $step->set_qt_var('_session', json_encode($this->session));
-            $this->defaultmark = 0;
+            $marks = 0;
             if (isset($this->session) && is_array($this->session)) {
-                $this->defaultmark = 0;
                 foreach ($this->session as $sess) {
                     if ($sess->success == false) {
                         continue;
                     }
                     foreach ($sess->sessions as $s) {
-                        $this->defaultmark += $s->marksTotal;
+                        $marks += $s->marksTotal;
                     }
                 }
             }
-            $step->set_qt_var('_marksTotal', json_encode($this->defaultmark));
+            $this->marksTotal = $marks;
+
+            $step->set_qt_var('_session', json_encode($this->session));
+            $step->set_qt_var('_marksTotal', json_encode($this->marksTotal));
+        } else {
+            error_log('AK ERROR question was already started');
         }
     }
 
+    /**
+     * Get the state information of a question that was already started before
+     */
     public function apply_attempt_state(question_attempt_step $step)
     {
         $this->session = json_decode($step->get_qt_var('_session'));
-        $this->defaultmark = (int) $step->get_qt_var('_marksTotal');
-
-        
-        if ($this->session != null) {
-            $this->continued = true;
-        }
+        $this->marksTotal = (int) $step->get_qt_var('_marksTotal');
+        $this->continued = true;
 
         parent::apply_attempt_state($step);
     }
 
+    /**
+     * Create a session for the given exercise.
+     * @return The session object
+     */
     public function createSession($exerciseId, $jsonBlob = null)
     {
         if (empty($this->apiKey)) {
@@ -152,8 +159,7 @@ class qtype_algebrakit_question extends question_graded_automatically
             'apiVersion' => 2,
             'exercises' => $exList
         );
-        $this->session = akitPost('/session/create', $data, $this->apiKey);
-        error_log(''. json_encode($this->session));
+        return akitPost('/session/create', $data, $this->apiKey);
     }
 
     public function summarise_response(array $response)
@@ -176,7 +182,7 @@ class qtype_algebrakit_question extends question_graded_automatically
 
     public function is_gradable_response(array $response)
     {
-        return $scoreObj->scoring->marksTotal > 0;
+        return $this->marksTotal > 0;
     }
 
     public function is_complete_response(array $response)
@@ -206,26 +212,24 @@ class qtype_algebrakit_question extends question_graded_automatically
 
     public function grade_response(array $response)
     {
+        if($this->marksTotal==0) {
+            // non-scorable question
+            return 1;
+        }
+
         $sessionId = $this->session[0]->sessions[0]->sessionId;
         $data = array(
             'sessionId' => $sessionId
         );
         $scoreObj = akitPost('/session/score', $data, $this->apiKey);
         if (isset($scoreObj->success) && $scoreObj->success === false) {
-            //throw new coding_exception("Invalid response when getting score for question", "Score Response: ".json_encode($scoreObj).";\nSession info: ".$response['_session']);
             $fraction = 0;
-        } else if($scoreObj->scoring->marksTotal == 0) {
-            // non-scorable question
-            $fraction = 0;
+        } else if($scoreObj->scoring->marksTotal==0) {
+            // should never happen
+            $fraction = 1;
         } else {
             $fraction = $scoreObj->scoring->marksEarned / $scoreObj->scoring->marksTotal;
         }
-
-        error_log(
-            'DEBUG GRADE_RESPONSE:    '.$fraction,
-            0
-        );
-
 
         return array($fraction, question_state::graded_state_for_fraction($fraction));
     }

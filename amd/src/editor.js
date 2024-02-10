@@ -60,6 +60,10 @@ class AKEditor {
           showEditor = true;
         }
 
+        // Let requireJS know where to find the jsxgraphcore library
+        let existingConfig = require.s.contexts._.config;
+        existingConfig.paths['jsxgraphcore'] =  cdnUrl.replace('akit-widgets', 'jsxgraphcore').replace('.js', '');
+
         if(showEditor) {
           if (jsonString) {
             this.spec = JSON.parse(jsonString);
