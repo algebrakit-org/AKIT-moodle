@@ -31,7 +31,7 @@ function xmldb_qtype_algebrakit_upgrade($oldversion) {
     $dbman = $DB->get_manager(); // loads database manager
 
     // Add a new field to an existing table, only if it doesn't exist
-    if ($oldversion < 20240131011) {
+    if ($oldversion < 20240131018) {
         $table = new xmldb_table('question_algebrakit');
 
         // drop major_version
@@ -42,7 +42,12 @@ function xmldb_qtype_algebrakit_upgrade($oldversion) {
 
         //Add field exercise_in_json to be added to question_algebrakit
         $field = new xmldb_field('exercise_in_json', XMLDB_TYPE_TEXT, 'big', null, false, null, null, null, 'exercise_id');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
 
+        //Add field assessment_mode to be added to question_algebrakit
+        $field = new xmldb_field('assessment_mode', XMLDB_TYPE_INTEGER, '1', null, null, null, null, 'exercise_in_json');
         if (!$dbman->field_exists($table, $field)) {
             $dbman->add_field($table, $field);
         }
@@ -68,7 +73,7 @@ function xmldb_qtype_algebrakit_upgrade($oldversion) {
         }
 
         // Algebrakit savepoint reached
-        upgrade_plugin_savepoint(true, 20240131011, 'qtype', 'algebrakit');
+        upgrade_plugin_savepoint(true, 20240131018, 'qtype', 'algebrakit');
     }
     return true;
 }

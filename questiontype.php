@@ -65,6 +65,7 @@ class qtype_algebrakit extends question_type
             $options = new stdClass();
             $options->exercise_id = $fromform->exercise_id;
             $options->exercise_in_json = $fromform->exercise_in_json;
+            $options->assessment_mode = $fromform->assessment_mode;
             $options->question_id = $fromform->id;
 
             $DB->insert_record('question_algebrakit', $options);
@@ -73,6 +74,7 @@ class qtype_algebrakit extends question_type
 
             $options->exercise_id = $fromform->exercise_id;
             $options->exercise_in_json = $fromform->exercise_in_json;
+            $options->assessment_mode = $fromform->assessment_mode;
             $DB->update_record('question_algebrakit', $options);
         }
     }
@@ -100,6 +102,7 @@ class qtype_algebrakit extends question_type
         parent::initialise_question_instance($question, $questiondata);
         $question->exercise_id = $questiondata->options->exercise_id;
         $question->question_id = $questiondata->options->question_id;
+        $question->assessment_mode = $questiondata->options->assessment_mode;
         if (isset($questiondata->options->exercise_in_json)) {
             $question->exercise_in_json = $questiondata->options->exercise_in_json;
             $question->exercise_id = null;

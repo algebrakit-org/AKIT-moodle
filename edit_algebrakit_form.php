@@ -44,6 +44,18 @@ class qtype_algebrakit_edit_form extends question_edit_form
     {
         global $CFG, $AK_CDN_URL, $AK_PROXY_URL, $PAGE;
 
+
+        // add the checkbox for assessment mode to the general section
+        $mform = $this->_form;
+        $mform->addElement('checkbox', 'assessment_mode', get_string('assessment_mode', 'qtype_algebrakit'), get_string('assessment_mode', 'qtype_algebrakit'));
+        $mform->addHelpButton('assessment_mode', 'assessment_mode', 'qtype_algebrakit');
+        $mform->setType('assessment_mode', PARAM_BOOL);
+
+        // the stem is not mandatory, generally set in the Algebrakit exercise. It will be hidden by javascript.
+        $i = array_search("questiontext", $mform->_required);
+        array_splice($mform->_required, $i, 1);
+        $mform->_rules['questiontext'] = array();
+
         $mform->addElement(
             'header',
             'akit_exercise',
@@ -74,14 +86,11 @@ class qtype_algebrakit_edit_form extends question_edit_form
         // but the question uses an exercise ID.
         $this->useEditor = get_config('qtype_algebrakit', 'enable_embedded_editor');
 
-
-        // the stem is not mandatory, generally set in the Algebrakit exercise
-        $i = array_search("questiontext", $mform->_required);
-        array_splice($mform->_required, $i, 1);
-        $mform->_rules['questiontext'] = array();
-
-        // to do: audiences should be defined in the settings
-        $this->audienceSpec = '[{ "name": "English Higher Secondary", "id": "uk_KS5" }, { "name": "English Lower Secondary", "id": "uk_KS3" }]';
+        $audience_region = get_config('qtype_algebrakit', 'audience_region');
+        if(empty($audience_region)) $audience_region = 'uk';
+        $this->audienceSpec = json_encode(getAudiencesForRegion($audience_region));
+        error_log("audience_reqion: ".$audience_region);
+        error_log("audienceSpec: ".json_encode($this->audienceSpec));
         $this->blacklist = '["NUMBER_LINE", "STAT_SINGLE_VIEW", "STAT_MULTI_VIEW","STATISTICS"]';
 
 
@@ -133,6 +142,7 @@ class qtype_algebrakit_edit_form extends question_edit_form
         } else {
             $question->exercise_in_json = null;
         }
+        $question->assessment_mode = $opt->assessment_mode;
 
         return $question;
     }

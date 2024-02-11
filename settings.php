@@ -24,7 +24,8 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-//$algebrakitSettings = new admin_settingpage('modsettingalgebrakit', get_string('settingsPageTitle', 'qtype_algebrakit'), 'moodle/site:config');
+require_once($CFG->dirroot . '/question/type/algebrakit/lib.php');
+$region_list = getAudienceRegions();
 
 if ($ADMIN->fulltree) {
 
@@ -32,10 +33,10 @@ if ($ADMIN->fulltree) {
     get_string('apikey', 'qtype_algebrakit'), get_string('apikey_desc', 'qtype_algebrakit'),
     "", PARAM_TEXT));
 
-    $menu = [
-        new lang_string('europe', 'qtype_algebrakit'),
-        new lang_string('singapore', 'qtype_algebrakit')
-    ];
+    $menu = array(
+        'eu' => new lang_string('europe', 'qtype_algebrakit'),
+        'sg' => new lang_string('singapore', 'qtype_algebrakit')
+    );
     $settings->add(new admin_setting_configselect('qtype_algebrakit/region',
     new lang_string('region', 'qtype_algebrakit'),
     new lang_string('region_desc', 'qtype_algebrakit'), '0', $menu));
@@ -44,6 +45,16 @@ if ($ADMIN->fulltree) {
     get_string('enable_embedded_editor', 'qtype_algebrakit'), get_string('enable_embedded_editor_desc', 'qtype_algebrakit'),
     1, 1, 0));
 
-    
+    $region_desc = new lang_string('audience_region_desc', 'qtype_algebrakit');
+    if($region_list == null) {
+        $region_list = array();
+        $region_desc = new lang_string('set_api_key_desc', 'qtype_algebrakit');
+    }
+    $settings->add(new admin_setting_configselect('qtype_algebrakit/audience_region',
+    new lang_string('audience_region', 'qtype_algebrakit'),
+    $region_desc, '0', $region_list));
+
 
 }
+
+

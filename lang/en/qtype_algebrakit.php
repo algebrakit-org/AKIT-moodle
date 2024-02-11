@@ -31,12 +31,16 @@ $string['apikey'] = 'API Key';
 $string['apikey_desc'] = 'A token used to access the Algebrakit API';
 $string['europe'] = 'Europe (Ireland)';
 $string['singapore'] = 'Asia (Singapore)';
-$string['region'] = 'Region';
+$string['region'] = 'Algebrakit service region';
 $string['region_desc'] = 'Location of the Algebrakit services. Choose the location nearest to your Moodle server for optimal performance.';
 $string['enable_embedded_editor'] = 'Use embedded Algebrakit editor';
 $string['enable_embedded_editor_desc'] = 'Deselect if you create content in the Algebrakit CMS and just enter the exercise ID in Moodle.';
 $string['akit_editor'] = 'Exercise Editor';
-
+$string['assessment_mode'] = 'Assessment mode';
+$string['assessment_mode_help'] = 'If enabled, Algebrakit will not support students with hints, feedback or automatic evaluation of steps. The question will be automatically evaluated after the quizz is submitted.';
+$string['audience_region'] = 'Region';
+$string['audience_region_desc'] = 'This configures Algebrakit to the language, mathematical notations, and curriculum of the selected region.';
+$string['set_api_key_desc'] = 'Set the API key first to retrieve the audience regions.';
 
 //OLD (from pliugin used a stemplate)
 $string['acceptederror'] = 'Accepted error';

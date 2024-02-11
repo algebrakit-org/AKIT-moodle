@@ -48,6 +48,7 @@ class qtype_algebrakit_question extends question_graded_automatically
     public $exercise_id;
     public $exercise_in_json;
     public $question_id;
+    public $assessment_mode;
 
     // number of marks for this exercuse (all interactions combined)
     public $marksTotal;
@@ -84,7 +85,7 @@ class qtype_algebrakit_question extends question_graded_automatically
         }
 
         if ($this->session == null) {
-            $this->session = $this->createSession($this->exercise_id, $this->exercise_in_json);
+            $this->session = createSession($this->exercise_id, $this->exercise_in_json, $this->assessment_mode);
 
             $marks = 0;
             if (isset($this->session) && is_array($this->session)) {
@@ -116,50 +117,6 @@ class qtype_algebrakit_question extends question_graded_automatically
         $this->continued = true;
 
         parent::apply_attempt_state($step);
-    }
-
-    /**
-     * Create a session for the given exercise.
-     * @return The session object
-     */
-    public function createSession($exerciseId, $jsonBlob = null)
-    {
-        if (empty($this->apiKey)) {
-            $sess = new SessionResponse();
-            $sess->success = false;
-            $sess->msg = 'No API Key is set. Go to the settings for the Algebrakit plugin to enter an API Key.';
-            $sess->sessions = [];
-            $this->session = [
-                $sess
-            ];
-            return;
-        }
-        //check jsonblob length > 5
-        if ($jsonBlob && strlen($jsonBlob)>5) {
-            
-            //convert string to json
-            $jsonBlob = json_decode($jsonBlob);
-
-            $exList = [
-                0 => [
-                    'exerciseSpec' => $jsonBlob,
-                    'version' => 'latest'
-                ]
-            ];
-        } else {
-            $exList = [
-                0 => [
-                    'exerciseId' => $exerciseId,
-                    'version' => 'latest'
-                ]
-            ];
-        }
-
-        $data = array(
-            'apiVersion' => 2,
-            'exercises' => $exList
-        );
-        return akitPost('/session/create', $data, $this->apiKey);
     }
 
     public function summarise_response(array $response)
@@ -217,11 +174,7 @@ class qtype_algebrakit_question extends question_graded_automatically
             return 1;
         }
 
-        $sessionId = $this->session[0]->sessions[0]->sessionId;
-        $data = array(
-            'sessionId' => $sessionId
-        );
-        $scoreObj = akitPost('/session/score', $data, $this->apiKey);
+        $scoreObj = getScore($this->session[0]->sessions[0]->sessionId);
         if (isset($scoreObj->success) && $scoreObj->success === false) {
             $fraction = 0;
         } else if($scoreObj->scoring->marksTotal==0) {

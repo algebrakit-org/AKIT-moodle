@@ -31,6 +31,9 @@ class AKEditor {
     get exerciseIdInputElement() {
       return document.querySelector(Selectors.actions.exerciseIdInputElement);
     }
+    get generalStemDiv() {
+      return document.querySelector(Selectors.actions.generalStemDiv);
+    }
 
     spec = null;
     cdnUrl = null;
@@ -73,7 +76,8 @@ class AKEditor {
     }
 
     async loadEditor() {
-      this.exerciseIdInputElement.style.display = 'none';
+      this.exerciseIdInputElement.parentElement.parentElement.style.display = 'none';
+      this.generalStemDiv.style.display = 'none';
 
       if(!window['AlgebraKIT']) {
         window['AlgebraKIT'] = {
