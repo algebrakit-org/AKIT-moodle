@@ -27,7 +27,7 @@ defined('MOODLE_INTERNAL') || die();
 
 /**
  * restore plugin class that provides the necessary information
- * needed to restore one numerical qtype plugin
+ * needed to restore one algebrakit qtype plugin
  *
  * @copyright  2010 onwards Eloy Lafuente (stronk7) {@link http://stronk7.com}
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -44,22 +44,18 @@ class restore_qtype_algebrakit_plugin extends restore_qtype_plugin {
         // This qtype uses question_answers, add them.
         $this->add_question_question_answers($paths);
 
-        // This qtype uses question_numerical_options and question_numerical_units, add them.
-        $this->add_question_numerical_options($paths);
-        $this->add_question_numerical_units($paths);
-
         // Add own qtype stuff.
-        $elename = 'numerical';
-        $elepath = $this->get_pathfor('/numerical_records/numerical_record');
+        $elename = 'algebrakit';
+        $elepath = $this->get_pathfor('/algebrakit_records/algebrakit_record');
         $paths[] = new restore_path_element($elename, $elepath);
 
         return $paths; // And we return the interesting paths.
     }
 
     /**
-     * Process the qtype/numerical element
+     * Process the qtype/algebrakit element
      */
-    public function process_numerical($data) {
+    public function process_algebrakit($data) {
         global $DB;
 
         $data = (object)$data;
@@ -75,9 +71,8 @@ class restore_qtype_algebrakit_plugin extends restore_qtype_plugin {
         if ($questioncreated) {
             // Adjust some columns.
             $data->question = $newquestionid;
-            $data->answer = $this->get_mappingid('question_answer', $data->answer);
             // Insert record.
-            $newitemid = $DB->insert_record('question_numerical', $data);
+            $newitemid = $DB->insert_record('question_algebrakit', $data);
         }
     }
 }
