@@ -23,9 +23,10 @@
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+ require_once($CFG->dirroot . '/question/type/algebrakit/constants.php');
 
 /**
- * Generates the output for short answer questions.
+ * Generates the html for an Algebrakit question.
  *
  * @copyright 2009 The Open University
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -35,6 +36,8 @@ class qtype_algebrakit_renderer extends qtype_renderer {
     protected $session;
     protected $solutionMode = false;
     protected $reviewMode = false;
+
+    // True if the question was already started before and we are returning to it
     protected $continued = false;
 
     protected $questionText;
@@ -44,7 +47,7 @@ class qtype_algebrakit_renderer extends qtype_renderer {
 
         $question = $qa->get_question();
 
-        $this->questionsummary = $qa->get_question()->questiontext;
+        $this->questionsummary = $question->questiontext;
 
         $qtData = $qa->get_last_qt_data();
         if (in_array('solutionMode', $qtData)) {
@@ -56,19 +59,8 @@ class qtype_algebrakit_renderer extends qtype_renderer {
         $this->session = $question->session;
         $this->continued = $question->continued;
 
-        $result = $this->continueSession();
+        $result = $this->showQuestion();
 
-        $sessionInputname = $qa->get_qt_field_name('_session');
-        $sessionJSON = json_encode($this->session);
-
-        $sessionAttributes = array(
-            'type' => 'hidden',
-            'name' => $sessionInputname,
-            'value' => $sessionJSON,
-            'id' => $sessionInputname,
-        );
-
-        $result .= html_writer::empty_tag('input', $sessionAttributes);
 
         return $result;
     }
@@ -102,17 +94,18 @@ class qtype_algebrakit_renderer extends qtype_renderer {
         return null;
     }
 
-    public function continueSession() {
-        global $CFG;
+    public function showQuestion() {
+        global $CFG, $AK_CDN_URL, $PAGE;
+
         $html = "";
         if (!empty($this->questionsummary)) {
             $html .= $this->questionsummary;
         }
+
         $err = qtype_algebrakit_renderer::getSessionError($this->session);
         if ($err != null) {
             $html .= "Failed to generate session for exercise: <br/> $err";
-        }
-        else {
+        } else {
             for ($ii = 0; $ii < count($this->session); $ii++) {
                 $ex = $this->session[$ii];
                 if($ex->success) {
@@ -126,7 +119,7 @@ class qtype_algebrakit_renderer extends qtype_renderer {
                         $attributes = array(
                             'session-id' => $sessionId,
                         );
-                        if ($this->solutionMode || $this->continued) {
+                        if ($this->solutionMode || $this->reviewMode || $this->continued) {
                             if ($this->solutionMode) {
                                 $attributes['solution-mode'] = true;
                             }
@@ -138,20 +131,13 @@ class qtype_algebrakit_renderer extends qtype_renderer {
                         else {
                             $html .= $ex->sessions[$nn]->html;
                         }
-                        
                     }
                 } else if ($ex != null) {
                     $html .= "Failed to generate session for exercise.";
                 }
             } 
-            $script = file_get_contents($CFG->dirroot . '/question/type/algebrakit/widgetLoader.js');
-            // $html .= "<link rel='stylesheet' href='https://cdn.jsdelivr.net/npm/katex@0.10.1/dist/katex.min.css'></script>";
-            // $html .= "<script src='https://cdn.jsdelivr.net/npm/katex@0.10.1/dist/katex.min.js'></script>";
-            $html .= "
-            <script>
-                $script
-            </script>
-            ";
+
+            $PAGE->requires->js_call_amd('qtype_algebrakit/question', 'init', [$AK_CDN_URL]);
         }
         return $html;
     }

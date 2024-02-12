@@ -22,17 +22,25 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-$string['pluginname'] = 'AlgebraKiT';
-$string['settingsPageTitle'] = 'AlgebraKiT Exercise Settings';
-$string['akit_exercise'] = "AlgebraKiT Exercise";
+$string['pluginname'] = 'Algebrakit';
+$string['settingsPageTitle'] = 'Algebrakit Exercise Settings';
+$string['akit_exerciseheader'] = 'Algebrakit Question Definition';
 $string['exerciseid'] = 'Exercise ID';
-$string['majorversion'] = 'Major Version';
-$string['exerciseIdRequired'] = 'Exercise ID is required';
-$string['majorVersionRequired'] = 'Major version is required';
-$string['majorVersionInvalid'] = 'Major version must be an integer or "latest"';
+$string['exerciseIdRequired'] = 'Exercise is not defined';
 $string['apikey'] = 'API Key';
-$string['apikey_desc'] = 'A token used to access the AlgebraKiT API';
-
+$string['apikey_desc'] = 'A token used to access the Algebrakit API';
+$string['europe'] = 'Europe (Ireland)';
+$string['singapore'] = 'Asia (Singapore)';
+$string['region'] = 'Algebrakit service region';
+$string['region_desc'] = 'Location of the Algebrakit services. Choose the location nearest to your Moodle server for optimal performance.';
+$string['enable_embedded_editor'] = 'Use embedded Algebrakit editor';
+$string['enable_embedded_editor_desc'] = 'Deselect if you create content in the Algebrakit CMS and just enter the exercise ID in Moodle.';
+$string['akit_editor'] = 'Exercise Editor';
+$string['assessment_mode'] = 'Assessment mode';
+$string['assessment_mode_help'] = 'If enabled, Algebrakit will not support students with hints, feedback or automatic evaluation of steps. The question will be automatically evaluated after the quizz is submitted.';
+$string['audience_region'] = 'Region';
+$string['audience_region_desc'] = 'This configures Algebrakit to the language, mathematical notations, and curriculum of the selected region.';
+$string['set_api_key_desc'] = 'Set the API key first to retrieve the audience regions.';
 
 //OLD (from pliugin used a stemplate)
 $string['acceptederror'] = 'Accepted error';
@@ -41,10 +49,10 @@ $string['addmoreanswerblanks'] = 'Blanks for {no} more answers';
 $string['addmoreunitblanks'] = 'Blanks for {no} more units';
 $string['answercolon'] = 'Answer:';
 $string['pleaseenterananswer'] = 'Please enter an answer.';
-$string['pluginname_help'] = 'The AlgebraKiT question type shows the student one or more AlgebraKiT interactions that can be used to sole mathematical problems. This includes solving the problem step-by-step and provide feedback on the student\'s answers';
+$string['pluginname_help'] = 'Algebrakit offers interactive question types question for mathematics in secondary education. There is support for various mathematical domains, such as algebra, geometry, tables, calculus, etc. The question types support multi-step problem solving with personalized scaffolds.';
 $string['pluginname_link'] = 'question/type/algebrakit';
-$string['pluginnameadding'] = 'Adding an AlgebraKiT question';
-$string['pluginnameediting'] = 'Editing an AlgebraKiT question';
+$string['pluginnameadding'] = 'Adding an Algebrakit question';
+$string['pluginnameediting'] = 'Editing an Algebrakit question';
 $string['pluginnamesummary'] = 'Solving math problems step-by-step using various interaction types and feedback';
-$string['privacy:metadata'] = 'The an AlgebraKiT question type plugin does not store any personal data.';
+$string['privacy:metadata'] = 'The Algebrakit question type plugin does not store personally identifiable information.';
 $string['relative'] = 'Relative';

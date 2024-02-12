@@ -23,99 +23,132 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-
 defined('MOODLE_INTERNAL') || die();
 
 require_once($CFG->dirroot . '/question/type/edit_question_form.php');
 require_once($CFG->dirroot . '/question/type/algebrakit/questiontype.php');
-
+require_once($CFG->dirroot . '/question/type/algebrakit/constants.php');
 
 /**
- * numerical editing form definition.
+ * Input form for an Algebrakit question.
  *
- * @copyright  2007 Jamie Pratt me@jamiep.org
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @copyright  2024 algebrakit.com
  */
-class qtype_algebrakit_edit_form extends question_edit_form {
-    /** @var int we always show at least this many sets of unit fields. */
-    const UNITS_MIN_REPEATS = 1;
-    const UNITS_TO_ADD = 2;
+class qtype_algebrakit_edit_form extends question_edit_form
+{
+    protected $useEditor = true;  // Use exercise editor (true) or exercise ID (false)
+    protected $audienceSpec;      // JSON definition of the audiences in the editor
+    protected $blacklist;         // JSON array of question types that should not be visible in the editor
 
-    protected $ap = null;
+    protected function definition_inner($mform)
+    {
+        global $CFG, $AK_CDN_URL, $AK_PROXY_URL, $PAGE;
 
-    protected function definition_inner($mform) {
-        $this->add_exercise_options($mform);
-    }
 
-    /**
-     * Add the unit handling options to the form.
-     * @param object $mform the form being built.
-     */
-    protected function add_exercise_options($mform) {
+        // add the checkbox for assessment mode to the general section
+        $mform = $this->_form;
+        $mform->addElement('checkbox', 'assessment_mode', get_string('assessment_mode', 'qtype_algebrakit'), get_string('assessment_mode', 'qtype_algebrakit'));
+        $mform->addHelpButton('assessment_mode', 'assessment_mode', 'qtype_algebrakit');
+        $mform->setType('assessment_mode', PARAM_BOOL);
 
+        // the stem is not mandatory, generally set in the Algebrakit exercise. It will be hidden by javascript.
         $i = array_search("questiontext", $mform->_required);
         array_splice($mform->_required, $i, 1);
         $mform->_rules['questiontext'] = array();
 
-        $mform->addElement('header', 'akit_exercise',
-                get_string('akit_exercise', 'qtype_algebrakit'));
+        $mform->addElement(
+            'header',
+            'akit_exercise',
+            get_string('akit_exerciseheader', 'qtype_algebrakit')
+        );
 
-        $mform->addElement('text', 'exercise_id',
-                get_string('exerciseid', 'qtype_algebrakit'));
+        // add hidden input field that contains the exercise in JSON format. This input field serves as
+        // the bridge between the editor and the Moodle question type.
+        $mform->addElement(
+            'hidden',
+            'exercise_in_json'
+        );
+        $mform->setType('exercise_in_json', PARAM_RAW);
 
-        $mform->addElement('text', 'major_version',
-                get_string('majorversion', 'qtype_algebrakit'));
-
+        $mform->addElement(
+            'text',
+            'exercise_id',
+            get_string('exerciseid', 'qtype_algebrakit')
+        );
         $mform->setType('exercise_id', PARAM_NOTAGS);
-        $mform->setType('major_version', PARAM_INT);
+
+        // the Algebrakit editor will be inserted here, if requird
+        $html = '<div class="qtype_algebrakit-editor-container" data-action="qtype_algebrakit/editor-container_div"></div>';
+        $mform->addElement('html', $html);
+
+        // Get setting to use editor or exercise ID.
+        // Note that some old questions might deviate. E.g. the editor is enabled in the settings
+        // but the question uses an exercise ID.
+        $this->useEditor = get_config('qtype_algebrakit', 'enable_embedded_editor');
+
+        $audience_region = get_config('qtype_algebrakit', 'audience_region');
+        if(empty($audience_region)) $audience_region = 'uk';
+        $this->audienceSpec = json_encode(getAudiencesForRegion($audience_region));
+        error_log("audience_reqion: ".$audience_region);
+        error_log("audienceSpec: ".json_encode($this->audienceSpec));
+        $this->blacklist = '["NUMBER_LINE", "STAT_SINGLE_VIEW", "STAT_MULTI_VIEW","STATISTICS"]';
+
+
+        $PAGE->requires->js_call_amd('qtype_algebrakit/editor', 'init', [$AK_CDN_URL, $AK_PROXY_URL,$this->useEditor,$this->audienceSpec,$this->blacklist]);
+        // $this->add_exercise_editor($mform);
     }
 
-    public function validation($data, $files) {
+    public function validation($data, $files)
+    {
         $errors = parent::validation($data, $files);
-        $errors = $this->validate_exercise_id($data, $errors);
-        $errors = $this->validate_major_version($data, $errors);
-        return $errors;
-    }
 
-    public function data_preprocessing($question) {
-        $question = parent::data_preprocessing($question);
-        $question = $this->data_preprocessing_options($question);
-        return $question;
-    }
-
-    public function data_preprocessing_options($question) {
-        if (!isset($question->options)) {
-            return $question;
-        }
-        $opt = $question->options;
-        $question->exercise_id = $opt->exercise_id;
-        $question->major_version = $opt->major_version;
-        $question->question_id = $opt->question_id;
-        return $question;
-    }
-
-    protected function validate_exercise_id($data, $errors) {
-        //Check exercise ID
+        $json = $data['exercise_in_json'];
         $exerciseId = $data['exercise_id'];
-        if (!isset($exerciseId) || trim($exerciseId) === '') {
+
+        if (isset($json) && strlen($json)>5) {
+            //remove errors for exercise_id
+            $data['exercise_id'] = '';
+        }  else if (isset($exerciseId) && strlen(trim($exerciseId)>4)) {
+            $data['exercise_in_json'] = '';         
+        } else {
             $errors['exerciseId'] = get_string('exerciseIdRequired', 'qtype_algebrakit');
         }
         return $errors;
     }
 
-    protected function validate_major_version($data, $errors) {
-        //Check major version
-        $majorVersion = $data['major_version'];
-        if (!isset($majorVersion) || trim($majorVersion) === '') {
-            $errors['majorversion'] = get_string('majorVersionRequired', 'qtype_algebrakit');
-        }
-        else if (!is_numeric($majorVersion) && $majorVersion !== 'latest') {
-            $errors['majorVersionInvalid'] = get_string('majorVersionRequired', 'qtype_algebrakit');
-        }
-        return $errors;
+    public function data_preprocessing($question)
+    {
+        $question = parent::data_preprocessing($question);
+        $question = $this->data_preprocessing_options($question);
+        return $question;
     }
 
-    public function qtype() {
+    public function data_preprocessing_options($question)
+    {
+        if (!isset($question->options)) {
+            return $question;
+        }
+
+        $opt = $question->options;
+        $question->question_id = $opt->question_id;
+
+        if (isset($opt->exercise_id)) {
+            $question->exercise_id = $opt->exercise_id;
+        } else {
+            $question->exercise_id = null;
+        }
+        if (isset($opt->exercise_in_json)) {
+            $question->exercise_in_json = $opt->exercise_in_json;
+        } else {
+            $question->exercise_in_json = null;
+        }
+        $question->assessment_mode = $opt->assessment_mode;
+
+        return $question;
+    }
+
+    public function qtype()
+    {
         return 'algebrakit';
     }
 }
