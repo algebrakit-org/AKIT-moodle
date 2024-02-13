@@ -54,7 +54,7 @@ function akitPost($url, $data, $apiKey)
  * Create a session for the given exercise.
  * @return The session object
  */
-function createSession($exerciseId, $jsonBlob = null, $assessment_mode = false) {
+function qtype_algebrakit_createSession($exerciseId, $jsonBlob = null, $assessment_mode = false) {
     $apiKey = get_config('qtype_algebrakit', 'apikey');
 
     if (empty($apiKey)) {
@@ -96,7 +96,7 @@ function createSession($exerciseId, $jsonBlob = null, $assessment_mode = false) 
     return akitPost('/session/create', $data, $apiKey);
 }
 
-function getScore($sessionId) {
+function qtype_algebrakit_getScore($sessionId) {
     $apiKey = get_config('qtype_algebrakit', 'apikey');
     if(empty($apiKey)) return null;
 
@@ -107,7 +107,7 @@ function getScore($sessionId) {
     return akitPost('/session/score', $data, $apiKey);
 }
 
-function getAudiences($baseOnly = true) {
+function qtype_algebrakit_getAudiences($baseOnly = true) {
     $apiKey = get_config('qtype_algebrakit', 'apikey');
     if(empty($apiKey)) return null;
 
@@ -135,10 +135,10 @@ function getAudiences($baseOnly = true) {
  * e.g. ['uk', 'es', 'fr', 'fr-BE']
  * Only base regions are included (not publisher-specific)
  */
-function getAudienceRegions() {
+function qtype_algebrakit_getAudienceRegions() {
     $region_set = array();
 
-    $audience_list = getAudiences();
+    $audience_list = qtype_algebrakit_getAudiences();
     if(empty($audience_list)) return null;
 
     foreach ($audience_list as $key => $value) {
@@ -167,8 +167,8 @@ function getAudienceRegions() {
  * Get all audiences for this region
  * e.g. [{ "name": "English Higher Secondary", "id": "uk_KS5" }, { "name": "English Lower Secondary", "id": "uk_KS3" }]
  */
-function getAudiencesForRegion($audience_region) {
-    $audience_list = getAudiences();
+function qtype_algebrakit_getAudiencesForRegion($audience_region) {
+    $audience_list = qtype_algebrakit_getAudiences();
     if(empty($audience_list)) return null;
 
     usort($audience_list, function ($a, $b) {

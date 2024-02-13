@@ -25,7 +25,7 @@
 defined('MOODLE_INTERNAL') || die();
 
 require_once($CFG->dirroot . '/question/type/algebrakit/lib.php');
-$region_list = getAudienceRegions();
+$region_list = qtype_algebrakit_getAudienceRegions();
 
 if ($ADMIN->fulltree) {
 

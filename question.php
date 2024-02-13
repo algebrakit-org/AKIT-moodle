@@ -85,7 +85,7 @@ class qtype_algebrakit_question extends question_graded_automatically
         }
 
         if ($this->session == null) {
-            $this->session = createSession($this->exercise_id, $this->exercise_in_json, $this->assessment_mode);
+            $this->session = qtype_algebrakit_createSession($this->exercise_id, $this->exercise_in_json, $this->assessment_mode);
 
             $marks = 0;
             if (isset($this->session) && is_array($this->session)) {
@@ -174,7 +174,7 @@ class qtype_algebrakit_question extends question_graded_automatically
             return 1;
         }
 
-        $scoreObj = getScore($this->session[0]->sessions[0]->sessionId);
+        $scoreObj = qtype_algebrakit_getScore($this->session[0]->sessions[0]->sessionId);
         if (isset($scoreObj->success) && $scoreObj->success === false) {
             $fraction = 0;
         } else if($scoreObj->scoring->marksTotal==0) {

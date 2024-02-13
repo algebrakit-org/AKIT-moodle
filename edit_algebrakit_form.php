@@ -88,7 +88,7 @@ class qtype_algebrakit_edit_form extends question_edit_form
 
         $audience_region = get_config('qtype_algebrakit', 'audience_region');
         if(empty($audience_region)) $audience_region = 'uk';
-        $this->audienceSpec = json_encode(getAudiencesForRegion($audience_region));
+        $this->audienceSpec = json_encode(qtype_algebrakit_getAudiencesForRegion($audience_region));
         error_log("audience_reqion: ".$audience_region);
         error_log("audienceSpec: ".json_encode($this->audienceSpec));
         $this->blacklist = '["NUMBER_LINE", "STAT_SINGLE_VIEW", "STAT_MULTI_VIEW","STATISTICS"]';
