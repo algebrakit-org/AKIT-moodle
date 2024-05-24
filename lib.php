@@ -57,6 +57,9 @@ function akitPost($url, $data, $apiKey)
 function qtype_algebrakit_createSession($exerciseId, $jsonBlob = null, $assessment_mode = false) {
     $apiKey = get_config('qtype_algebrakit', 'apikey');
 
+    // somehow the type of $assessment_mode is string. Convert it to boolean.
+    $assessment_mode = isset($assessment_mode) && (strcmp($assessment_mode,'1') == 0 || $assessment_mode == true);
+
     if (empty($apiKey)) {
         $sess = new SessionResponse();
         $sess->success = false;
@@ -93,6 +96,7 @@ function qtype_algebrakit_createSession($exerciseId, $jsonBlob = null, $assessme
         'exercises' => $exList,
         'assessmentMode' => $assessment_mode
     );
+
     return akitPost('/session/create', $data, $apiKey);
 }
 
@@ -168,6 +172,10 @@ function qtype_algebrakit_getAudienceRegions() {
  * e.g. [{ "name": "English Higher Secondary", "id": "uk_KS5" }, { "name": "English Lower Secondary", "id": "uk_KS3" }]
  */
 function qtype_algebrakit_getAudiencesForRegion($audience_region) {
+    // AK uses non-standard language code for UK
+    if(strcmp($audience_region, 'uk') == 0) {
+        $audience_region = 'en';
+    }
     $audience_list = qtype_algebrakit_getAudiences();
     if(empty($audience_list)) return null;
 

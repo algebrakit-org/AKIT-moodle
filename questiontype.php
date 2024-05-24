@@ -38,6 +38,17 @@ require_once($CFG->dirroot . '/question/type/algebrakit/question.php');
  */
 class qtype_algebrakit extends question_type
 {
+    public function extra_question_fields() {
+        return array('question_algebrakit', 'exercise_id', 'exercise_in_json', 'assessment_mode');
+    }
+
+    /**
+     * If you use extra_question_fields, overload this function to return question id field name
+     *  in case you table use another name for this column
+     */
+    public function questionid_column_name() {
+        return 'question_id';
+    }
 
     public function move_files($questionid, $oldcontextid, $newcontextid)
     {
@@ -54,6 +65,7 @@ class qtype_algebrakit extends question_type
     public function save_question_options($fromform)
     {
         global $DB;
+
         $context = $fromform->context;
 
         parent::save_question_options($fromform);
@@ -65,7 +77,7 @@ class qtype_algebrakit extends question_type
             $options = new stdClass();
             $options->exercise_id = $fromform->exercise_id;
             $options->exercise_in_json = $fromform->exercise_in_json;
-            $options->assessment_mode = $fromform->assessment_mode;
+            $options->assessment_mode = $fromform->assessment_mode? 1: 0;
             $options->question_id = $fromform->id;
 
             $DB->insert_record('question_algebrakit', $options);
@@ -74,9 +86,10 @@ class qtype_algebrakit extends question_type
 
             $options->exercise_id = $fromform->exercise_id;
             $options->exercise_in_json = $fromform->exercise_in_json;
-            $options->assessment_mode = $fromform->assessment_mode;
+            $options->assessment_mode = $fromform->assessment_mode? 1: 0;
             $DB->update_record('question_algebrakit', $options);
         }
+
     }
 
     public function get_question_options($question)
@@ -110,6 +123,7 @@ class qtype_algebrakit extends question_type
             $question->exercise_id = $questiondata->options->exercise_id;
             $question->exercise_in_json = null;
         } 
+
     }
 
     public function get_random_guess_score($questiondata)

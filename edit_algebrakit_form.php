@@ -47,7 +47,7 @@ class qtype_algebrakit_edit_form extends question_edit_form
 
         // add the checkbox for assessment mode to the general section
         $mform = $this->_form;
-        $mform->addElement('checkbox', 'assessment_mode', get_string('assessment_mode', 'qtype_algebrakit'), get_string('assessment_mode', 'qtype_algebrakit'));
+        $mform->addElement('advcheckbox', 'assessment_mode', get_string('assessment_mode', 'qtype_algebrakit'), get_string('assessment_mode', 'qtype_algebrakit'));
         $mform->addHelpButton('assessment_mode', 'assessment_mode', 'qtype_algebrakit');
         $mform->setType('assessment_mode', PARAM_BOOL);
 
@@ -89,8 +89,6 @@ class qtype_algebrakit_edit_form extends question_edit_form
         $audience_region = get_config('qtype_algebrakit', 'audience_region');
         if(empty($audience_region)) $audience_region = 'uk';
         $this->audienceSpec = json_encode(qtype_algebrakit_getAudiencesForRegion($audience_region));
-        error_log("audience_reqion: ".$audience_region);
-        error_log("audienceSpec: ".json_encode($this->audienceSpec));
         $this->blacklist = '["NUMBER_LINE", "STAT_SINGLE_VIEW", "STAT_MULTI_VIEW","STATISTICS"]';
 
 
@@ -113,6 +111,7 @@ class qtype_algebrakit_edit_form extends question_edit_form
         } else {
             $errors['exerciseId'] = get_string('exerciseIdRequired', 'qtype_algebrakit');
         }
+
         return $errors;
     }
 
@@ -142,7 +141,9 @@ class qtype_algebrakit_edit_form extends question_edit_form
         } else {
             $question->exercise_in_json = null;
         }
-        $question->assessment_mode = $opt->assessment_mode;
+
+        $question->assessment_mode = isset($opt->assessment_mode) 
+            && (strcmp($opt->assessment_mode,'1') == 0 || $opt->assessment_mode == true);
 
         return $question;
     }
